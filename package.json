@@ -1,0 +1,22 @@
+{
+  "name": "phabricator",
+  "version": "0.0.1",
+  "description": "Phabricator.js is a node module used to call [Phabricator](http://phabricator.com) API.",
+  "main": "phabricator.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "phabricator"
+  ],
+  "dependencies": {
+    "arale": "0.2.0",
+    "JSONPath" : "0.9.1"
+  },
+  "devDependencies": {
+    "mocha" : "*",
+    "expect.js" : "*"
+  },
+  "author": "Ethan.Wang <wsvn53@gmail.com>",
+  "license": "BSD"
+}
