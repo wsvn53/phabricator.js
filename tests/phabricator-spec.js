@@ -19,8 +19,17 @@ describe("Phabricator", function () {
         prc.execute("conduit.getcertificate", {
             token : "sf42rh2a5xqfu5fcrud75fdt4jiiefayy2lscf44"
         }, function (data) {
-            // console.log(data)
+            console.log(data)
             expect("result" in data).to.be(true);
+            done();
+        });
+    });
+
+    it("this.installCertificate(token) should return true.", function (done) {
+        var token = "mcrdz4cvqhaedhanoeqqdcpcpyxygwwt32zv6q5b";
+        prc.installCertificate(token, function (data) {
+            console.log(data)
+            expect(!!data.result).to.be(true);
             done();
         });
     });

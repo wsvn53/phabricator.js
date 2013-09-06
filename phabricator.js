@@ -21,6 +21,8 @@ var Phabricator = Class.create({
     interface_file : __dirname + "/interfaces.json",
     // store token for this app
     config_file : __dirname + "/phabricator.json",
+    // certificate file
+    certificate_file : __dirname + "/certificate.json",
     // http request default options
     http_options : {
         port: 80,
@@ -38,7 +40,7 @@ var Phabricator = Class.create({
             this.config[opt] = options[opt];
         }
         // delete the last '/'
-        if(this.config.conduit_uri.charCodeAt(this.config.conduit_uri.length-1)==47) 
+        if(this.config.conduit_uri.charAt(this.config.conduit_uri.length-1)=="/") 
             this.config.conduit_uri = this.config.conduit_uri.substr(0, this.config.conduit_uri.length-1);
         // read proxy
         if (!!this.config.proxy) {
@@ -78,8 +80,9 @@ var Phabricator = Class.create({
                 // console.log('HEADERS: ' + JSON.stringify(res.headers));
                 res.setEncoding('utf8');
                 res.on('data', function (chunk) {
-                    //console.log('BODY: ' + chunk);
-                    callback(that.config.output=="json"?JSON.parse(chunk):chunk);
+                    var result = that.config.output=="json"?JSON.parse(chunk):chunk;
+                    if (typeof result=="object") result.apiName = rule.name;
+                    callback(result);
                 });
             });
         
@@ -157,8 +160,27 @@ var Phabricator = Class.create({
     /**
      * like : arc install-certificate
      */
-    installCertificate : function () {
-        // body...
+    installCertificate : function (token, callback) {
+        var that = this;
+        // conduit.ping first
+        this.execute("conduit.ping", null, function (data) {
+            // if data.result
+            if (!!data.result) {
+                that.execute("conduit.getcertificate", {
+                    "token" : token
+                }, function (data) {
+                    if (!!data.result) {
+                        // save to certificate.json
+                        fs.writeFileSync(that.certificate_file, JSON.stringify(data.result));
+                        callback(data);
+                    } else {
+                        callback(data);
+                    }
+                });
+            } else {
+                callback(data);
+            }
+        });
     },
     /**
      * @return list - review list. 
