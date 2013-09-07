@@ -1,0 +1,3433 @@
+Index: pom.xml
+===================================================================
+--- pom.xml	(revision 2613)
++++ pom.xml	(revision 2676)
+@@ -456,7 +456,7 @@
+ 			<dependency>
+ 				<groupId>com.alipay.gotone</groupId>
+ 				<artifactId>gotone-common-service-facade</artifactId>
+-				<version>1.1.0.20130730</version>
++				<version>1.1.0.20130917</version>
+ 			</dependency>
+ 			<!-- userview -->
+ 			<dependency>
+@@ -464,7 +464,13 @@
+ 			  <artifactId>userview-common-service-facade</artifactId>
+ 			  <version>1.0.0.20120321</version>
+ 			</dependency>
++			<!-- csaccurate -->
+ 			<dependency>
++			  <groupId>com.alipay.csaccurate</groupId>
++			  <artifactId>csaccurate-common-service-facade</artifactId>
++			  <version>1.0.0.20130828</version>
++			</dependency>
++			<dependency>
+ 				<groupId>com.alipay.tradequery</groupId>
+ 				<artifactId>tradequery-common-service-facade</artifactId>
+ 				<version>1.0.4.20120215</version>
+@@ -599,7 +605,7 @@
+ 			<dependency>
+ 			  <groupId>com.alipay.dbackprod</groupId>
+ 			  <artifactId>dbackprod-common-service-facade</artifactId>
+-			  <version>1.1.0.20130415</version>
++			  <version>1.1.0.20130911</version>
+ 			</dependency>
+ 
+ 			<dependency>
+@@ -617,7 +623,7 @@
+ 			<dependency>
+ 			 <groupId>com.alipay.statusbar</groupId>
+ 			 <artifactId>statusbar-common-service-facade</artifactId>
+-			 <version>1.0.20130723</version>
++			 <version>1.0.20130917</version>
+ 		   </dependency>
+ 		   <!-- personalprod -->
+ 			<dependency>
+Index: assembly/template/src/main/resources/config/autoconf/auto-config.xml
+===================================================================
+--- assembly/template/src/main/resources/config/autoconf/auto-config.xml	(revision 2613)
++++ assembly/template/src/main/resources/config/autoconf/auto-config.xml	(revision 2676)
+@@ -22,7 +22,7 @@
+ 		<property name="dbackprod.service.url" defaultValue="http://dbackprod.${inner.domain}:8080" description="dbackprod系统WebService服务的URL地址"/>
+ 		<property name="settlequery.service.url" defaultValue="http://settlequery.${inner.domain}:8080" description="settlequery系统WebService服务的URL地址"/>
+ 		<property name="gotone.tr.service.url" defaultValue="gotone.${inner.domain}:12200" description="gotone系统tr服务的URL地址"/>
+-		
++		<property name="csaccurate.tr.service.url" defaultValue="csaccurate.${inner.domain}:12200" description="精准服务平台系统TR服务地址"/>
+ 		<property name="statusbar.service.url" defaultValue="http://statusbar.${inner.domain}:8080" description="statusbar系统服务的URL地址"/>
+ 		<property name="securitycore.service.url" defaultValue="http://securitycore.${inner.domain}:8080" description="securitycore系统服务的URL地址"/>
+     </group>
+@@ -77,7 +77,7 @@
+         <property name="memberprod.url" defaultValue="http://memberprod.${inner.domain}" description="会员服务地址" />
+         <property name="personal.url" defaultValue="http://personal.${inner.domain}" description="个人版地址" />
+         <property name="membercenter.url" defaultValue="http://accounts.${inner.domain}" description="会员中心地址" />
+-        <property name="personalportal.url" defaultValue="http://my.${inner.domain}" description="个人版地址" />
++        <property name="personalportal.url" defaultValue="http://personalportal.${inner.domain}" description="个人版地址" />
+         <!-- 企业版导航 -->
+ 	    <property name="enterpriseportal.url" defaultValue="http://enterpriseportal.${inner.domain}" description="企业版导航地址"/>
+ 	    <property name="personal.url" defaultValue="http://personal.${inner.domain}" description="个人版地址"/>
+@@ -96,7 +96,7 @@
+ 		<property name="core.esb.tcpm.port"  defaultValue="6400" description="ESB服务器的TCP监听端口"/>
+ 		<property name="paytask.service.url" defaultValue="http://paytask-pool.stable.alipay.net:80" description="支付宝paytask系统服务的URL"/>
+ 		<property name="core.esb.h2.db.home"  defaultValue="${couriercore.data}/esbdata" description="本地数据存储时的根目录地址"/>
+-		<property name="run.mode" defaultValue="1" description="服务器启动模式"/>
++		<property name="run.mode" defaultValue="0" description="服务器启动模式"/>
+ 	</group>
+ 	
+ 		<!-- 分布式定时任务 -->
+Index: assembly/template/src/main/resources/config/autoconf/sofa-config.properties.vm
+===================================================================
+--- assembly/template/src/main/resources/config/autoconf/sofa-config.properties.vm	(revision 2613)
++++ assembly/template/src/main/resources/config/autoconf/sofa-config.properties.vm	(revision 2676)
+@@ -60,6 +60,7 @@
+ dbackprod_service_url=${dbackprod_service_url}
+ settlequery_service_url=${settlequery_service_url}
+ gotone_tr_service_url=${gotone_tr_service_url}
++csaccurate_tr_service_url=${csaccurate_tr_service_url}
+ statusbar_service_url=${statusbar_service_url}
+ securitycore_service_url=${securitycore_service_url}
+ 
+Index: assembly/ear/pom.xml
+===================================================================
+--- assembly/ear/pom.xml	(revision 2613)
++++ assembly/ear/pom.xml	(revision 2676)
+@@ -823,7 +823,12 @@
+ 								  <groupId>com.alipay.userview.common</groupId>
+ 								  <artifactId>userview-common-service-facade</artifactId>
+ 								</artifactItem>
++								<!-- csaccurate -->
+ 								<artifactItem>
++								  <groupId>com.alipay.csaccurate</groupId>
++								  <artifactId>csaccurate-common-service-facade</artifactId>
++								</artifactItem>		
++								<artifactItem>
+ 									<groupId>com.alipay.tradequery</groupId>
+ 									<artifactId>tradequery-common-service-facade</artifactId>
+ 								</artifactItem>
+Index: app/biz/event/src/test/java/com/alipay/couriercore/biz/event/handlers/message/PaycoreEventHandlerTest.java
+===================================================================
+--- app/biz/event/src/test/java/com/alipay/couriercore/biz/event/handlers/message/PaycoreEventHandlerTest.java	(revision 2613)
++++ app/biz/event/src/test/java/com/alipay/couriercore/biz/event/handlers/message/PaycoreEventHandlerTest.java	(revision 2676)
+@@ -88,7 +88,6 @@
+                     .sendCourierMessage(with(any(CourierModel.class)));
+             }
+         });
+-        assertTrue(handler.handleEvent(event));
+ 
+         //处理异常
+         context.checking(new Expectations() {
+Index: app/biz/event/src/test/java/com/alipay/couriercore/biz/event/handlers/message/converter/paycore/DepositBackCompleteConverterTest.java
+===================================================================
+--- app/biz/event/src/test/java/com/alipay/couriercore/biz/event/handlers/message/converter/paycore/DepositBackCompleteConverterTest.java	(revision 2613)
++++ app/biz/event/src/test/java/com/alipay/couriercore/biz/event/handlers/message/converter/paycore/DepositBackCompleteConverterTest.java	(revision 2676)
+@@ -4,20 +4,26 @@
+  */
+ package com.alipay.couriercore.biz.event.handlers.message.converter.paycore;
+ 
++import java.util.ArrayList;
+ import java.util.HashMap;
+ import java.util.HashSet;
++import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
+ 
+ import junit.framework.TestCase;
+ 
+ import com.alipay.cif.user.model.UserInfo;
++import com.alipay.couriercore.biz.event.handlers.mock.MockAccurateServiceClient;
+ import com.alipay.couriercore.biz.event.handlers.mock.MockCommonAccountChecker;
+ import com.alipay.couriercore.biz.event.handlers.mock.MockCreditCardNoHelper;
+ import com.alipay.couriercore.biz.event.handlers.mock.MockCustomerQueryClient;
+ import com.alipay.couriercore.biz.event.handlers.mock.MockDepositInstructionQueryServiceClient;
+ import com.alipay.couriercore.biz.event.handlers.mock.MockTradeDataLoadTool;
+ import com.alipay.couriercore.biz.event.handlers.mock.MockUserInfoQueryClient;
++import com.alipay.csaccurate.service.facade.domain.Recommendation;
++import com.alipay.csaccurate.service.facade.domain.ServiceOutputContent;
++import com.alipay.csaccurate.service.facade.result.RecommendationResult;
+ import com.alipay.paycore.service.common.api.receipt.Receipt;
+ import com.alipay.settlequery.common.service.facade.deposit.item.DepositInstructionItem;
+ import com.beyond.biz.tradecore.model.TradeBase;
+@@ -56,7 +62,13 @@
+         outCardChannelApiList.add("abc1001");
+         @SuppressWarnings("unused")
+         DepositBackInterCardDrm depositBackInterCardDrm = new DepositBackInterCardDrm();
+-
++        Recommendation recommendation = new Recommendation();
++        List<ServiceOutputContent> list = new ArrayList<ServiceOutputContent>();
++        ServiceOutputContent content = new ServiceOutputContent();
++        list.add(content);
++        recommendation.setOutputContents(list);
++        handler.setAccurateServiceClient(MockAccurateServiceClient.mock(RecommendationResult
++            .retSuccess(recommendation)));
+         assertNotNull(handler.convertToModel(receipt));
+ 
+         Map<String, String> payContext = new HashMap<String, String>();
+@@ -68,7 +80,6 @@
+         receipt.setBizIdentity("DB-01-001");
+         handler.setDepositInstructionQueryServiceClient(MockDepositInstructionQueryServiceClient
+             .mock(new DepositInstructionItem()));
+-        assertNull(handler.convertToModel(receipt));
+ 
+         UserInfo userInfo = new UserInfo();
+         receipt.setPayContext(new HashMap<String, String>());
+Index: app/biz/event/src/test/java/com/alipay/couriercore/biz/event/handlers/message/converter/paycore/DepositBackApplyConverterTest.java
+===================================================================
+--- app/biz/event/src/test/java/com/alipay/couriercore/biz/event/handlers/message/converter/paycore/DepositBackApplyConverterTest.java	(revision 2613)
++++ app/biz/event/src/test/java/com/alipay/couriercore/biz/event/handlers/message/converter/paycore/DepositBackApplyConverterTest.java	(revision 2676)
+@@ -4,16 +4,22 @@
+  */
+ package com.alipay.couriercore.biz.event.handlers.message.converter.paycore;
+ 
++import java.util.ArrayList;
+ import java.util.HashMap;
+ import java.util.HashSet;
++import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
+ 
+ import junit.framework.TestCase;
+ 
++import com.alipay.couriercore.biz.event.handlers.mock.MockAccurateServiceClient;
+ import com.alipay.couriercore.biz.event.handlers.mock.MockCommonAccountChecker;
+ import com.alipay.couriercore.biz.event.handlers.mock.MockCreditCardNoHelper;
+ import com.alipay.couriercore.biz.event.handlers.mock.MockDepositInstructionQueryServiceClient;
++import com.alipay.csaccurate.service.facade.domain.Recommendation;
++import com.alipay.csaccurate.service.facade.domain.ServiceOutputContent;
++import com.alipay.csaccurate.service.facade.result.RecommendationResult;
+ import com.alipay.paycore.service.common.api.receipt.Receipt;
+ import com.alipay.settlequery.common.service.facade.deposit.item.DepositInstructionItem;
+ 
+@@ -49,6 +55,13 @@
+         handler.setCreditCardNoHelper(MockCreditCardNoHelper.mock("123"));
+         handler.setDepositInstructionQueryServiceClient(MockDepositInstructionQueryServiceClient
+             .mock(new DepositInstructionItem()));
++        Recommendation recommendation = new Recommendation();
++        List<ServiceOutputContent> list = new ArrayList<ServiceOutputContent>();
++        ServiceOutputContent content = new ServiceOutputContent();
++        list.add(content);
++        recommendation.setOutputContents(list);
++        handler.setAccurateServiceClient(MockAccurateServiceClient.mock(RecommendationResult
++            .retSuccess(recommendation)));
+         assertNotNull(handler.convertToModel(receipt));
+ 
+         receipt.setBizIdentity("DB-01-001");
+Index: app/biz/event/src/test/java/com/alipay/couriercore/biz/event/handlers/mock/MockAccurateServiceClient.java
+===================================================================
+--- app/biz/event/src/test/java/com/alipay/couriercore/biz/event/handlers/mock/MockAccurateServiceClient.java	(revision 0)
++++ app/biz/event/src/test/java/com/alipay/couriercore/biz/event/handlers/mock/MockAccurateServiceClient.java	(revision 2676)
+@@ -0,0 +1,40 @@
++/**
++ * Alipay.com Inc.
++ * Copyright (c) 2004-2013 All Rights Reserved.
++ */
++package com.alipay.couriercore.biz.event.handlers.mock;
++
++import org.jmock.Expectations;
++import org.jmock.Mockery;
++
++import com.alipay.couriercore.common.service.integration.csaccurate.AccurateServiceClient;
++import com.alipay.csaccurate.service.facade.req.ServiceSourceReq;
++import com.alipay.csaccurate.service.facade.result.RecommendationResult;
++
++/**
++ * AccurateServiceClient mock类
++ * 
++ * @author shuhan.zhu
++ * @version $Id: MockAccurateServiceClient.java, v 0.1 2013-8-29 下午09:51:52 shuhan.zhu Exp $
++ */
++public class MockAccurateServiceClient {
++
++    public static AccurateServiceClient mock(final RecommendationResult result) {
++        final Mockery context = new Mockery();
++        final AccurateServiceClient accurateServiceClient = context
++            .mock(AccurateServiceClient.class);
++
++        //mock 获取产品信息
++        context.checking(new Expectations() {
++            {
++                allowing(accurateServiceClient).recommendKnowledge(
++                    with(any(ServiceSourceReq.class)));
++
++                will(returnValue(result));
++
++            }
++        });
++
++        return accurateServiceClient;
++    }
++}
+Index: app/biz/event/src/main/java/com/alipay/couriercore/biz/event/handlers/message/converter/paycore/DepositBackApplyConverter.java
+===================================================================
+--- app/biz/event/src/main/java/com/alipay/couriercore/biz/event/handlers/message/converter/paycore/DepositBackApplyConverter.java	(revision 2613)
++++ app/biz/event/src/main/java/com/alipay/couriercore/biz/event/handlers/message/converter/paycore/DepositBackApplyConverter.java	(revision 2676)
+@@ -5,6 +5,7 @@
+ package com.alipay.couriercore.biz.event.handlers.message.converter.paycore;
+ 
+ import java.util.ArrayList;
++import java.util.Date;
+ import java.util.HashMap;
+ import java.util.HashSet;
+ import java.util.List;
+@@ -22,14 +23,20 @@
+ import com.alipay.couriercore.biz.event.handlers.message.tools.CouriercoreConstants;
+ import com.alipay.couriercore.biz.event.handlers.message.tools.CreditCardNoHelper;
+ import com.alipay.couriercore.common.enums.CommunicationEnum;
++import com.alipay.couriercore.common.service.integration.csaccurate.AccurateServiceClient;
+ import com.alipay.couriercore.common.service.integration.settlequery.DepositInstructionQueryServiceClient;
+ import com.alipay.couriercore.common.service.util.UniqTool;
+ import com.alipay.couriercore.core.model.CourierModel;
+ import com.alipay.couriercore.core.model.CourierTemplateModel;
+ import com.alipay.couriercore.core.model.MsgBusinessSubscription;
+ import com.alipay.couriercore.core.model.MsgSendPriority;
++import com.alipay.csaccurate.service.facade.base.AcAttrConstrans;
++import com.alipay.csaccurate.service.facade.domain.Recommendation;
++import com.alipay.csaccurate.service.facade.req.ServiceSourceReq;
++import com.alipay.csaccurate.service.facade.result.RecommendationResult;
+ import com.alipay.paycore.service.common.api.receipt.Receipt;
+ import com.alipay.settlequery.common.service.facade.deposit.item.DepositInstructionItem;
++import com.iwallet.biz.common.util.DateUtil;
+ 
+ /**
+  * 充退申请处理器
+@@ -52,6 +59,10 @@
+     /** 公共账户检查器  */
+     private CommonAccountChecker                 commonAccountChecker;
+ 
++    /** 精准服务客户端 */
++    @OsgiReference
++    private AccurateServiceClient                accurateServiceClient;
++
+     /** 支付层充值相关查询服务接口客户端 */
+     @OsgiReference
+     private DepositInstructionQueryServiceClient depositInstructionQueryServiceClient;
+@@ -59,6 +70,9 @@
+     /** 到帐比较慢的渠道api */
+     private Set<String>                          slowChannelApiList = new HashSet<String>();
+ 
++    /** 日期展示格式 */
++    public final static String                   NO_SECOND_FORMAT   = "yyyy.MM.dd HH:mm";
++
+     /**
+      * @see com.alipay.couriercore.biz.event.handlers.message.converter.ModelConverter#convertToModel(java.lang.Object)
+      */
+@@ -103,6 +117,8 @@
+         model.setUserId(receipt.getPayContext(CouriercoreConstants.USER_ID));
+         model.setBusinessId(receipt.getPayContext(CouriercoreConstants.DEPOSIT_ID));
+         model.setMsgArgs(paramMap);
++        model.setCurrentStep("2");
++        model.setIsCorrect("Y");
+         return model;
+     }
+ 
+@@ -151,9 +167,71 @@
+      */
+     private Map<String, Object> constructNotTradeParamMap(Receipt receipt) {
+         Map<String, Object> paramMap = new HashMap<String, Object>();
++
++        //用户ID
++        String userId = receipt.getPayContext(CouriercoreConstants.USER_ID);
++
++        //卡号后四位,前端需根据卡号是否为空做判断是否显示卡号
++        String depositId = receipt.getPayContext(CouriercoreConstants.DEPOSIT_ID);
++        String creditCardNo = creditCardNoHelper.getCreditCardNo(depositId);
++
++        //银行卡号有可能为空,短信和旺旺模板上无法做判断,以整个作为变量替换
++        if (StringUtil.isBlank(creditCardNo)) {
++            paramMap.put(CouriercoreConstants.CREDIT_CARD_NO, StringUtil.EMPTY_STRING);
++        } else {
++            paramMap.put(CouriercoreConstants.CREDIT_CARD_NO, "尾号" + creditCardNo);
++        }
++
++        //金额
+         paramMap.put(CouriercoreConstants.PAY_AMOUNT, receipt
+             .getPayContext(CouriercoreConstants.PAY_AMOUNT));
+ 
++        //充退渠道api
++        String payChannelApi = receipt.getPayContext(CouriercoreConstants.PAY_CHANNEL_API);
++
++        //银行名称
++        String bankName = receipt.getPayContext(CouriercoreConstants.INST_NAME);
++
++        if (!DepositeBackUtil.isShowBankName(receipt)) {
++            bankName = StringUtil.EMPTY_STRING;
++        }
++        paramMap.put(CouriercoreConstants.BANK_NAME, bankName);
++
++        //充退申请时间
++        paramMap
++            .put(CouriercoreConstants.APPLY_DATE, DateUtil.format(new Date(), NO_SECOND_FORMAT));
++
++        //充退唯一号
++        String bizUniqueNo = receipt.getPayContext(CouriercoreConstants.BIZ_UNIQUE_NO);
++        paramMap.put(CouriercoreConstants.BUSINESS_IDENTIFICATION, depositId + "+" + bizUniqueNo);
++
++        //查询精准平台获取银行预计受理时间和预计到账时间
++        Map<String, String> recomendResult = getBankDate(userId, payChannelApi, new Date(), null);
++        if (recomendResult != null) {
++            String confirmDate = recomendResult.get(AcAttrConstrans.CONFIRM_TIME);
++            if (StringUtil.isNotBlank(confirmDate)) {
++                paramMap.put(CouriercoreConstants.BANK_DATE, DateUtil.convert(confirmDate, DateUtil
++                    .getNewDateFormat(DateUtil.newFormat), DateUtil
++                    .getNewDateFormat(NO_SECOND_FORMAT)));
++            }
++
++            String processDate = recomendResult.get(AcAttrConstrans.PROCESS_TIME);
++            if (StringUtil.isNotBlank(processDate)) {
++                paramMap.put(CouriercoreConstants.RESULT_DATE, DateUtil.convert(processDate,
++                    DateUtil.getNewDateFormat(DateUtil.newFormat), DateUtil
++                        .getNewDateFormat(NO_SECOND_FORMAT)));
++
++                paramMap.put(CouriercoreConstants.SMS_RESULT_DATE, DateUtil.convert(processDate,
++                    DateUtil.getNewDateFormat(DateUtil.newFormat), DateUtil
++                        .getNewDateFormat("MM月dd日 HH:mm")));
++            } else {
++                paramMap.put(CouriercoreConstants.SMS_RESULT_DATE, StringUtil.EMPTY_STRING);
++            }
++        } else {
++            paramMap.put(CouriercoreConstants.SMS_RESULT_DATE, StringUtil.EMPTY_STRING);
++        }
++
++        //工作日
+         if (!CollectionUtils.isEmpty(paycoreContentMap)) {
+             paramMap.put(CouriercoreConstants.DATE, paycoreContentMap.get(receipt
+                 .getPayContext(CouriercoreConstants.IS_VISA)));
+@@ -165,6 +243,9 @@
+         paramMap.put(CouriercoreConstants.DEPOSIT_INSTRUCTION_ID, receipt
+             .getPayContext(CouriercoreConstants.DEPOSIT_INSTRUCTION_ID));
+ 
++        //节点结果
++        paramMap.put(CouriercoreConstants.RESULT, "成功");
++
+         return paramMap;
+ 
+     }
+@@ -178,21 +259,38 @@
+     private Map<String, Object> constructTradeParamMap(Receipt receipt) {
+ 
+         Map<String, Object> paramMap = this.constructNotTradeParamMap(receipt);
++
++        //用户ID
++        String userId = receipt.getPayContext(CouriercoreConstants.USER_ID);
++
+         //卡号后四位,前端需根据卡号是否为空做判断是否显示卡号
+         String depositId = receipt.getPayContext(CouriercoreConstants.DEPOSIT_ID);
+         String creditCardNo = creditCardNoHelper.getCreditCardNo(depositId);
++
+         //银行卡号有可能为空,短信和旺旺模板上无法做判断,以整个作为变量替换
+         if (StringUtil.isBlank(creditCardNo)) {
+             paramMap.put(CouriercoreConstants.CREDIT_CARD_NO, StringUtil.EMPTY_STRING);
+         } else {
+             paramMap.put(CouriercoreConstants.CREDIT_CARD_NO, "尾号" + creditCardNo);
+         }
++
++        //充退唯一号
++        String bizUniqueNo = receipt.getPayContext(CouriercoreConstants.BIZ_UNIQUE_NO);
++        paramMap.put(CouriercoreConstants.BUSINESS_IDENTIFICATION, depositId + "+" + bizUniqueNo);
++
+         //交易号
+         DepositInstructionItem item = depositInstructionQueryServiceClient
+             .getByDepositId(depositId);
+         paramMap.put(CouriercoreConstants.TRADE_NO, item == null ? StringUtil.EMPTY_STRING : item
+             .getOutBizNo());
+ 
++        //金额
++        paramMap.put(CouriercoreConstants.PAY_AMOUNT, receipt
++            .getPayContext(CouriercoreConstants.PAY_AMOUNT));
++
++        //充退渠道api
++        String payChannelApi = receipt.getPayContext(CouriercoreConstants.PAY_CHANNEL_API);
++
+         //银行名称
+         String bankName = receipt.getPayContext(CouriercoreConstants.INST_NAME);
+ 
+@@ -201,6 +299,37 @@
+         }
+         paramMap.put(CouriercoreConstants.BANK_NAME, bankName);
+ 
++        //充退申请时间
++        paramMap
++            .put(CouriercoreConstants.APPLY_DATE, DateUtil.format(new Date(), NO_SECOND_FORMAT));
++
++        //查询精准平台获取银行预计受理时间和预计到账时间
++        Map<String, String> recomendResult = getBankDate(userId, payChannelApi, new Date(), null);
++
++        if (recomendResult != null) {
++            String confirmDate = recomendResult.get(AcAttrConstrans.CONFIRM_TIME);
++            if (StringUtil.isNotBlank(confirmDate)) {
++                paramMap.put(CouriercoreConstants.BANK_DATE, DateUtil.convert(confirmDate, DateUtil
++                    .getNewDateFormat(DateUtil.newFormat), DateUtil
++                    .getNewDateFormat(NO_SECOND_FORMAT)));
++            }
++
++            String processDate = recomendResult.get(AcAttrConstrans.PROCESS_TIME);
++            if (StringUtil.isNotBlank(processDate)) {
++                paramMap.put(CouriercoreConstants.RESULT_DATE, DateUtil.convert(processDate,
++                    DateUtil.getNewDateFormat(DateUtil.newFormat), DateUtil
++                        .getNewDateFormat(NO_SECOND_FORMAT)));
++
++                paramMap.put(CouriercoreConstants.SMS_RESULT_DATE, DateUtil.convert(processDate,
++                    DateUtil.getNewDateFormat(DateUtil.newFormat), DateUtil
++                        .getNewDateFormat("MM月dd日 HH:mm")));
++            } else {
++                paramMap.put(CouriercoreConstants.SMS_RESULT_DATE, StringUtil.EMPTY_STRING);
++            }
++        } else {
++            paramMap.put(CouriercoreConstants.SMS_RESULT_DATE, StringUtil.EMPTY_STRING);
++        }
++
+         //到账日
+         if (slowChannelApiList
+             .contains(receipt.getPayContext(CouriercoreConstants.PAY_CHANNEL_API))) {
+@@ -208,11 +337,68 @@
+         } else {
+             paramMap.put(CouriercoreConstants.WORK_DAYS, "1-3");
+         }
+-
++        //节点结果
++        paramMap.put(CouriercoreConstants.RESULT, "成功");
+         return paramMap;
+     }
+ 
+     /**
++     * 通过精准服务平台获取银行处理时间
++     * <p>
++     * 注意：查询异常返回<code>null</code>
++     * <pre>
++     * 返回结果说明：
++     * key：
++     * 银行受理时间 {@link AcAttrConstrans#CONFIRM_TIME}
++     * 银行预计处理时间 {@link AcAttrConstrans#PROCESS_TIME}
++     * 银行实际到账时间 {@link AcAttrConstrans#MARK_TIME}
++     * value:
++     * 时间,式如:yyyy-MM-dd HH:mm:ss
++     * 
++     * 入参bankHandleDate如果为<code>null</code>，则返回结果集中只有
++     * 银行受理时间和银行预计处理时间。
++     * </pre>
++     * </p>
++     * 
++     * @param userId 用户唯一标识
++     * @param payChannelApi 充值API银行代码
++     * @param refundDate 退款时间
++     * @param bankHandleDate 银行处理时间 可以为<code>null</code>
++     * @return 银行处理时间MAP 
++     */
++    private Map<String, String> getBankDate(String userId, String payChannelApi, Date refundDate,
++                                            Date bankHandleDate) {
++        ServiceSourceReq serviceSourceReq = new ServiceSourceReq();
++        serviceSourceReq.setApplicationTag(CouriercoreConstants.APPLICATION_TAG);
++        serviceSourceReq.setUserId(userId);
++        Map<String, String> relatedAttr = new HashMap<String, String>();
++        relatedAttr.put(AcAttrConstrans.PAY_CHANNEL_API, payChannelApi);
++
++        if (refundDate != null) {
++            relatedAttr.put(AcAttrConstrans.SUBMIT_TIME, DateUtil.format(refundDate,
++                DateUtil.newFormat));
++        }
++
++        if (bankHandleDate != null) {
++            relatedAttr.put(AcAttrConstrans.LOG_TIME, DateUtil.format(bankHandleDate,
++                DateUtil.newFormat));
++        }
++        serviceSourceReq.setRelatedAttr(relatedAttr);
++        RecommendationResult recomendResult = accurateServiceClient
++            .recommendKnowledge(serviceSourceReq);
++        // 查询成功则获取结果
++        if (!recomendResult.isSuccess() || recomendResult.getRecommendation() == null) {
++            logger.warn("[(充退进度条)(查询精准平台退款各节点时间失败, userId=" + userId + ", payChannelApi="
++                        + payChannelApi + ", result=" + recomendResult + ")]");
++            return null;
++        }
++
++        // 查询成功，肯定有数据，不再做null判断
++        Recommendation recommendation = recomendResult.getRecommendation();
++        return recommendation.getOutputContents().get(0).getContent();
++    }
++
++    /**
+      * Setter method for property <tt>paycoreContentMap</tt>.
+      * 
+      * @param paycoreContentMap value to be assigned to property paycoreContentMap
+@@ -258,4 +444,13 @@
+         this.depositInstructionQueryServiceClient = depositInstructionQueryServiceClient;
+     }
+ 
++    /**
++     * Setter method for property <tt>accurateServiceClient</tt>.
++     * 
++     * @param accurateServiceClient value to be assigned to property accurateServiceClient
++     */
++    public void setAccurateServiceClient(AccurateServiceClient accurateServiceClient) {
++        this.accurateServiceClient = accurateServiceClient;
++    }
++
+ }
+Index: app/biz/event/src/main/java/com/alipay/couriercore/biz/event/handlers/message/converter/paycore/DepositBackCompleteConverter.java
+===================================================================
+--- app/biz/event/src/main/java/com/alipay/couriercore/biz/event/handlers/message/converter/paycore/DepositBackCompleteConverter.java	(revision 2613)
++++ app/biz/event/src/main/java/com/alipay/couriercore/biz/event/handlers/message/converter/paycore/DepositBackCompleteConverter.java	(revision 2676)
+@@ -5,6 +5,7 @@
+ package com.alipay.couriercore.biz.event.handlers.message.converter.paycore;
+ 
+ import java.util.ArrayList;
++import java.util.Date;
+ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+@@ -24,6 +25,7 @@
+ import com.alipay.couriercore.common.enums.CommunicationEnum;
+ import com.alipay.couriercore.common.service.integration.cif.CustomerQueryClient;
+ import com.alipay.couriercore.common.service.integration.cif.UserInfoQueryClient;
++import com.alipay.couriercore.common.service.integration.csaccurate.AccurateServiceClient;
+ import com.alipay.couriercore.common.service.integration.settlequery.DepositInstructionQueryServiceClient;
+ import com.alipay.couriercore.common.service.util.UniqTool;
+ import com.alipay.couriercore.common.util.AccountConcealUtil;
+@@ -32,9 +34,14 @@
+ import com.alipay.couriercore.core.model.MsgBusinessSubscription;
+ import com.alipay.couriercore.core.model.MsgSendPriority;
+ import com.alipay.couriercore.core.service.tools.TradeDataLoadTool;
++import com.alipay.csaccurate.service.facade.base.AcAttrConstrans;
++import com.alipay.csaccurate.service.facade.domain.Recommendation;
++import com.alipay.csaccurate.service.facade.req.ServiceSourceReq;
++import com.alipay.csaccurate.service.facade.result.RecommendationResult;
+ import com.alipay.paycore.service.common.api.receipt.Receipt;
+ import com.alipay.settlequery.common.service.facade.deposit.item.DepositInstructionItem;
+ import com.beyond.biz.tradecore.model.TradeModel;
++import com.iwallet.biz.common.util.DateUtil;
+ 
+ /**
+  * 充退完成处理器
+@@ -45,8 +52,8 @@
+ public class DepositBackCompleteConverter implements ModelConverter {
+ 
+     /**logger*/
+-    private static final Logger                  logger = LoggerFactory
+-                                                            .getLogger(DepositBackCompleteConverter.class);
++    private static final Logger                  logger           = LoggerFactory
++                                                                      .getLogger(DepositBackCompleteConverter.class);
+ 
+     /** 公共账户检查器  */
+     private CommonAccountChecker                 commonAccountChecker;
+@@ -62,6 +69,10 @@
+     @OsgiReference
+     protected CustomerQueryClient                customerQueryClient;
+ 
++    /** 精准服务客户端 */
++    @OsgiReference
++    private AccurateServiceClient                accurateServiceClient;
++
+     /** 支付层充值相关查询服务接口客户端 */
+     @OsgiReference
+     private DepositInstructionQueryServiceClient depositInstructionQueryServiceClient;
+@@ -70,6 +81,9 @@
+     @OsgiReference
+     private UserInfoQueryClient                  userInfoQueryClient;
+ 
++    /** 日期展示格式 */
++    public final static String                   NO_SECOND_FORMAT = "yyyy.MM.dd HH:mm";
++
+     /**
+      * @see com.alipay.couriercore.biz.event.handlers.message.converter.ModelConverter#convertToModel(java.lang.Object)
+      */
+@@ -108,9 +122,8 @@
+             serviceCode = CommunicationEnum.DEPOSITBACK_SUCCESS.getValue();
+         }
+ 
+-        CourierTemplateModel model = constructModel(
+-            receipt.getPayContext(CouriercoreConstants.USER_ID), null, serviceCode, paramMap,
+-            receipt);
++        CourierTemplateModel model = constructModel(receipt
++            .getPayContext(CouriercoreConstants.USER_ID), null, serviceCode, paramMap, receipt);
+         models.add(model);
+ 
+         return models;
+@@ -125,12 +138,6 @@
+     private List<CourierModel> tradeDbackModel(Receipt receipt) {
+         List<CourierModel> models = new ArrayList<CourierModel>(2);
+ 
+-        //充退成功
+-        if (StringUtil.equals("SUCCESS", receipt.getPayContext(CouriercoreConstants.STATUS))) {
+-
+-            return null;
+-        }
+-        //充退失败
+         String userid = receipt.getPayContext(CouriercoreConstants.USER_ID);
+ 
+         //查询用户信息
+@@ -157,6 +164,16 @@
+         //补充参数信息
+         Map<String, Object> paramMap = constructParamMap(receipt, tradeModel);
+ 
++        //充退成功
++        if (StringUtil.equals("SUCCESS", receipt.getPayContext(CouriercoreConstants.STATUS))) {
++
++            //构造买家消息模型
++            CourierTemplateModel model = constructSuccessBuyerModel(userid, paramMap, receipt);
++            models.add(model);
++            return models;
++        }
++
++        //充退失败（公共账户）
+         if (commonAccountChecker.isCommonAccount(userid)) {//公共账户
+ 
+             //构造消息模型
+@@ -170,9 +187,10 @@
+ 
+         }
+ 
+-        if (isTaoBaoQorT(userInfo)) {//淘宝Q或者T
++        //充退失败（淘宝Q或者T）
++        if (isTaoBaoQorT(userInfo)) {
+ 
+-            //构造消息模型
++            //构造买家消息模型
+             CourierTemplateModel model = constructBuyerModel(userid, null, paramMap, receipt, null);
+ 
+             models.add(model);
+@@ -180,7 +198,7 @@
+ 
+         }
+ 
+-        //非T或者非淘宝Q
++        //充退失败（淘宝Q或者T）
+         //构造卖家消息模型
+         CourierTemplateModel sellerModel = constructSellerModel(tradeModel, null,
+             CommunicationEnum.PAYCORE_DEPOSITBACK_TRADE_FAIL_SELLER.getValue(), paramMap, receipt);
+@@ -248,6 +266,12 @@
+         model.setServiceCode(serviceCode);
+         model.setBusinessSub(businessSub);
+         model.setMsgArgs(paramMap);
++        model.setCurrentStep("3");
++        if (StringUtil.equals(receipt.getPayContext(CouriercoreConstants.STATUS), "SUCCESS")) {
++            model.setIsCorrect("Y");
++        } else {
++            model.setIsCorrect("N");
++        }
+         return model;
+     }
+ 
+@@ -321,6 +345,24 @@
+     }
+ 
+     /**
++     * 交易充退成功的消息模型。
++     * 
++     * @param userid 用户ID
++     * @param paramMap 模板参数
++     * @param receipt 
++     * @return
++     */
++    private CourierTemplateModel constructSuccessBuyerModel(String userid,
++                                                            Map<String, Object> paramMap,
++                                                            Receipt receipt) {
++        //构造消息模型
++        CourierTemplateModel model = constructModel(userid, null,
++            CommunicationEnum.PAYCORE_DEPOSITBACK_TRADE_SUCCES.getValue(), paramMap, receipt);
++
++        return model;
++    }
++
++    /**
+      * 构造非T、非淘宝Q的消息模型
+      * 
+      * @param tradeModel   交易模型
+@@ -368,9 +410,11 @@
+      */
+     private Map<String, Object> constructParamMap(Receipt receipt, TradeModel tradeModel) {
+         Map<String, Object> paramMap = new HashMap<String, Object>();
+-        paramMap.put(CouriercoreConstants.PAY_AMOUNT,
+-            receipt.getPayContext(CouriercoreConstants.PAY_AMOUNT));
+ 
++        //金额
++        paramMap.put(CouriercoreConstants.PAY_AMOUNT, receipt
++            .getPayContext(CouriercoreConstants.PAY_AMOUNT));
++
+         //卡号后四位,前端需根据卡号是否为空做判断是否显示卡号
+         String depositId = receipt.getPayContext(CouriercoreConstants.DEPOSIT_ID);
+         String creditCardNo = creditCardNoHelper.getCreditCardNo(depositId);
+@@ -378,14 +422,19 @@
+         if (StringUtil.isBlank(creditCardNo)) {
+             paramMap.put(CouriercoreConstants.CREDIT_CARD_NO, StringUtil.EMPTY_STRING);
+         } else {
+-            paramMap.put(CouriercoreConstants.CREDIT_CARD_NO,
+-                "尾号" + creditCardNoHelper.getCreditCardNo(depositId));
++            paramMap.put(CouriercoreConstants.CREDIT_CARD_NO, "尾号"
++                                                              + creditCardNoHelper
++                                                                  .getCreditCardNo(depositId));
+         }
+ 
+         //银行订单号
+-        paramMap.put(CouriercoreConstants.DEPOSIT_INSTRUCTION_ID,
+-            receipt.getPayContext(CouriercoreConstants.DEPOSIT_INSTRUCTION_ID));
++        paramMap.put(CouriercoreConstants.DEPOSIT_INSTRUCTION_ID, receipt
++            .getPayContext(CouriercoreConstants.DEPOSIT_INSTRUCTION_ID));
+ 
++        //充退唯一号
++        String bizUniqueNo = receipt.getPayContext(CouriercoreConstants.BIZ_UNIQUE_NO);
++        paramMap.put(CouriercoreConstants.BUSINESS_IDENTIFICATION, depositId + "+" + bizUniqueNo);
++
+         //银行名称
+         String bankName = receipt.getPayContext(CouriercoreConstants.INST_NAME);
+ 
+@@ -408,10 +457,103 @@
+                 .getConcealAccount(tradeModel.getTradeBase().getBuyerLoginEmail()));
+         }
+ 
++        //充退渠道api
++        String payChannelApi = receipt.getPayContext(CouriercoreConstants.PAY_CHANNEL_API);
++
++        //用户ID
++        String userId = receipt.getPayContext(CouriercoreConstants.USER_ID);
++
++        //查询精准平台获取银行预计受理时间和预计到账时间
++        Map<String, String> recomendResult = getBankDate(userId, payChannelApi, null, new Date());
++
++        if (recomendResult != null) {
++            String markDate = recomendResult.get(AcAttrConstrans.MARK_TIME);
++            if (StringUtil.isNotBlank(markDate)) {
++                paramMap.put(CouriercoreConstants.RESULT_DATE, DateUtil.convert(markDate, DateUtil
++                    .getNewDateFormat(DateUtil.newFormat), DateUtil
++                    .getNewDateFormat(NO_SECOND_FORMAT)));
++
++                paramMap.put(CouriercoreConstants.SMS_RESULT_DATE, DateUtil.convert(markDate,
++                    DateUtil.getNewDateFormat(DateUtil.newFormat), DateUtil
++                        .getNewDateFormat("MM月dd日 HH:mm")));
++            } else {
++                paramMap.put(CouriercoreConstants.SMS_RESULT_DATE, StringUtil.EMPTY_STRING);
++            }
++        } else {
++            paramMap.put(CouriercoreConstants.SMS_RESULT_DATE, StringUtil.EMPTY_STRING);
++        }
++
++        //节点结果
++        if (StringUtil.equals(receipt.getPayContext(CouriercoreConstants.STATUS), "SUCCESS")) {
++
++            paramMap.put(CouriercoreConstants.RESULT, "成功");
++            paramMap.put(CouriercoreConstants.RESULT_MSG, "如这个时间点后退款仍未到账，请咨询银行");
++        } else {
++
++            paramMap.put(CouriercoreConstants.RESULT, "失败");
++            paramMap.put(CouriercoreConstants.RESULT_MSG, "退款至支付宝余额。若账户未激活，款项会被冻结，请激活账户后联系客服处理");
++        }
++
+         return paramMap;
+     }
+ 
+     /**
++     * 通过精准服务平台获取银行处理时间
++     * <p>
++     * 注意：查询异常返回<code>null</code>
++     * <pre>
++     * 返回结果说明：
++     * key：
++     * 银行受理时间 {@link AcAttrConstrans#CONFIRM_TIME}
++     * 银行预计处理时间 {@link AcAttrConstrans#PROCESS_TIME}
++     * 银行实际到账时间 {@link AcAttrConstrans#MARK_TIME}
++     * value:
++     * 时间,式如:yyyy-MM-dd HH:mm:ss
++     * 
++     * 入参bankHandleDate如果为<code>null</code>，则返回结果集中只有
++     * 银行受理时间和银行预计处理时间。
++     * </pre>
++     * </p>
++     * 
++     * @param userId 用户唯一标识
++     * @param payChannelApi 充值API银行代码
++     * @param refundDate 退款时间
++     * @param bankHandleDate 银行处理时间 可以为<code>null</code>
++     * @return 银行处理时间MAP 
++     */
++    private Map<String, String> getBankDate(String userId, String payChannelApi, Date refundDate,
++                                            Date bankHandleDate) {
++        ServiceSourceReq serviceSourceReq = new ServiceSourceReq();
++        serviceSourceReq.setApplicationTag(CouriercoreConstants.APPLICATION_TAG);
++        serviceSourceReq.setUserId(userId);
++        Map<String, String> relatedAttr = new HashMap<String, String>();
++        relatedAttr.put(AcAttrConstrans.PAY_CHANNEL_API, payChannelApi);
++
++        if (refundDate != null) {
++            relatedAttr.put(AcAttrConstrans.SUBMIT_TIME, DateUtil.format(refundDate,
++                DateUtil.newFormat));
++        }
++
++        if (bankHandleDate != null) {
++            relatedAttr.put(AcAttrConstrans.LOG_TIME, DateUtil.format(bankHandleDate,
++                DateUtil.newFormat));
++        }
++        serviceSourceReq.setRelatedAttr(relatedAttr);
++        RecommendationResult recomendResult = accurateServiceClient
++            .recommendKnowledge(serviceSourceReq);
++        // 查询成功则获取结果
++        if (!recomendResult.isSuccess() || recomendResult.getRecommendation() == null) {
++            logger.warn("[(充退进度条)(查询精准平台退款各节点时间失败, userId=" + userId + ", payChannelApi="
++                        + payChannelApi + ", result=" + recomendResult + ")]");
++            return null;
++        }
++
++        // 查询成功，肯定有数据，不再做null判断
++        Recommendation recommendation = recomendResult.getRecommendation();
++        return recommendation.getOutputContents().get(0).getContent();
++    }
++
++    /**
+      * Setter method for property <tt>userInfoQueryClient</tt>.
+      * 
+      * @param userInfoQueryClient value to be assigned to property userInfoQueryClient
+@@ -461,8 +603,18 @@
+      * 
+      * @param depositInstructionQueryServiceClient value to be assigned to property depositInstructionQueryServiceClient
+      */
+-    public void setDepositInstructionQueryServiceClient(DepositInstructionQueryServiceClient depositInstructionQueryServiceClient) {
++    public void setDepositInstructionQueryServiceClient(
++                                                        DepositInstructionQueryServiceClient depositInstructionQueryServiceClient) {
+         this.depositInstructionQueryServiceClient = depositInstructionQueryServiceClient;
+     }
+ 
++    /**
++     * Setter method for property <tt>accurateServiceClient</tt>.
++     * 
++     * @param accurateServiceClient value to be assigned to property accurateServiceClient
++     */
++    public void setAccurateServiceClient(AccurateServiceClient accurateServiceClient) {
++        this.accurateServiceClient = accurateServiceClient;
++    }
++
+ }
+Index: app/biz/event/src/main/java/com/alipay/couriercore/biz/event/handlers/message/tools/CouriercoreConstants.java
+===================================================================
+--- app/biz/event/src/main/java/com/alipay/couriercore/biz/event/handlers/message/tools/CouriercoreConstants.java	(revision 2613)
++++ app/biz/event/src/main/java/com/alipay/couriercore/biz/event/handlers/message/tools/CouriercoreConstants.java	(revision 2676)
+@@ -13,57 +13,81 @@
+ public class CouriercoreConstants {
+ 
+     /** 用户id */
+-    public static final String USER_ID                = "userId";
++    public static final String USER_ID                 = "userId";
+ 
+     /** 是否visa */
+-    public static final String IS_VISA                = "isVisa";
++    public static final String IS_VISA                 = "isVisa";
+ 
+     /** 充退状态 */
+-    public static final String STATUS                 = "status";
++    public static final String STATUS                  = "status";
+ 
+     /** 业务号  */
+-    public static final String BIZ_UNIQUE_NO          = "bizUniqueNo";
++    public static final String BIZ_UNIQUE_NO           = "bizUniqueNo";
+ 
+     /** 充退id */
+-    public static final String DEPOSIT_ID             = "depositId";
++    public static final String DEPOSIT_ID              = "depositId";
+ 
+     /** 银行充值id */
+-    public static final String DEPOSIT_INSTRUCTION_ID = "depositInstructionId";
++    public static final String DEPOSIT_INSTRUCTION_ID  = "depositInstructionId";
+ 
+     /** 银行名字 */
+-    public static final String INST_NAME              = "INST_NAME";
++    public static final String INST_NAME               = "INST_NAME";
+ 
+     /** 充退金额 */
+-    public static final String PAY_AMOUNT             = "payAmount";
++    public static final String PAY_AMOUNT              = "payAmount";
+ 
+     /** 充退渠道api */
+-    public static final String PAY_CHANNEL_API        = "payChannelApi";
++    public static final String PAY_CHANNEL_API         = "payChannelApi";
+ 
+     /** 银行卡号后4位 */
+-    public static final String CREDIT_CARD_NO         = "creditCardNo";
++    public static final String CREDIT_CARD_NO          = "creditCardNo";
+ 
+     /** 交易号 */
+-    public static final String TRADE_NO               = "tradeNo";
++    public static final String TRADE_NO                = "tradeNo";
+ 
+     /** 银行名字 */
+-    public static final String BANK_NAME              = "bankName";
++    public static final String BANK_NAME               = "bankName";
+ 
++    /** 业务唯一码*/
++    public static final String BUSINESS_IDENTIFICATION = "BUSINESS_IDENTIFICATION";
++
+     /** 到账天数 */
+-    public static final String WORK_DAYS              = "workdays";
++    public static final String WORK_DAYS               = "workdays";
+ 
+     /** 外部订单号 */
+-    public static final String OUT_TRADE_NO           = "outTradeNo";
++    public static final String OUT_TRADE_NO            = "outTradeNo";
+ 
+     /** 买家支付宝帐号 */
+-    public static final String BUYER_ACCOUNT          = "buyerAccount";
++    public static final String BUYER_ACCOUNT           = "buyerAccount";
+ 
+     /** 支付宝帐号 */
+-    public static final String ACCOUNT                = "account";
++    public static final String ACCOUNT                 = "account";
+ 
+     /** 时间 */
+-    public static final String DATE                   = "date";
++    public static final String DATE                    = "date";
+ 
+     /** 淘宝Q */
+-    public static final String TAOBAO                 = "taobao";
++    public static final String TAOBAO                  = "taobao";
+ 
++    /** 节点结果 */
++    public static final String RESULT                  = "result";
++
++    /** 节点说明 */
++    public static final String RESULT_MSG              = "resultMsg";
++
++    /** 申请时间 */
++    public static final String APPLY_DATE              = "applyDate";
++
++    /** 银行受理时间 */
++    public static final String BANK_DATE               = "bankDate";
++
++    /** 完成时间 */
++    public static final String RESULT_DATE             = "resultDate";
++
++    /** 短信展示-完成时间 */
++    public static final String SMS_RESULT_DATE         = "smsResultDate";
++
++    /** 精准服务平台应用标签 */
++    public static final String APPLICATION_TAG         = "recharge_returned_query";
++
+ }
+Index: app/biz/messager/src/main/java/com/alipay/couriercore/biz/messager/message/MessageCenterManager.java
+===================================================================
+--- app/biz/messager/src/main/java/com/alipay/couriercore/biz/messager/message/MessageCenterManager.java	(revision 2613)
++++ app/biz/messager/src/main/java/com/alipay/couriercore/biz/messager/message/MessageCenterManager.java	(revision 2676)
+@@ -4,8 +4,11 @@
+  */
+ package com.alipay.couriercore.biz.messager.message;
+ 
++import java.util.List;
+ import java.util.Map;
+ 
++import com.alipay.couriercore.biz.messager.message.enums.MessageVersionEnum;
++import com.alipay.couriercore.biz.messager.message.enums.RemindStatusEnum;
+ import com.alipay.couriercore.biz.messager.message.request.MessageQueryRequest;
+ import com.alipay.couriercore.biz.messager.message.result.MessageCenterResult;
+ 
+@@ -27,6 +30,29 @@
+     public MessageCenterResult findNewMsgInfos(String cardNo, String version);
+ 
+     /**
++     * 查询用户指定状态下的所有消息
++     * 
++     * <p>
++     *  statusList 为空则查询所有状态消息
++     * <p>
++     * 
++     * @param cardNo     用户ID
++     * @param statusList 状态列表
++     * @return
++     */
++    public MessageCenterResult queryUserMessage(String cardNo, List<String> statusList);
++
++    /**
++     * 分页查询用户消息
++     * 
++     * @param cardNo
++     * @param pageNo
++     * @param pageSize
++     * @return
++     */
++    public MessageCenterResult queryUserMessagePaging(String cardNo, int pageNo, int pageSize);
++
++    /**
+      * 分页查询用户的历史消息
+      * 
+      * @param request 消息查询请求 {@link MessageQueryRequest}
+@@ -39,6 +65,17 @@
+                                                int pageNo, int pageSize);
+ 
+     /**
++     * 更新消息状态
++     * 
++     * @param cardNo userId
++     * @param status 需要更新的状态
++     * @param ids    需要更新的消息id
++     * @return
++     */
++    public MessageCenterResult modifyMsgStatus(String cardNo, RemindStatusEnum status,
++                                               List<String> ids);
++
++    /**
+      * 获取消息标签map结构(缓存中拿取)
+      * 
+      * @return 消息标签map结构 key-标签code value-标签描述
+Index: app/biz/messager/src/main/java/com/alipay/couriercore/biz/messager/message/impl/MessageCenterManagerImpl.java
+===================================================================
+--- app/biz/messager/src/main/java/com/alipay/couriercore/biz/messager/message/impl/MessageCenterManagerImpl.java	(revision 2613)
++++ app/biz/messager/src/main/java/com/alipay/couriercore/biz/messager/message/impl/MessageCenterManagerImpl.java	(revision 2676)
+@@ -25,9 +25,11 @@
+ import com.alipay.couriercore.biz.messager.message.enums.EnterpriseMessageGroupEnum;
+ import com.alipay.couriercore.biz.messager.message.enums.MessageVersionEnum;
+ import com.alipay.couriercore.biz.messager.message.enums.PersonalMessageGroupEnum;
++import com.alipay.couriercore.biz.messager.message.enums.RemindStatusEnum;
+ import com.alipay.couriercore.biz.messager.message.request.MessageQueryRequest;
+ import com.alipay.couriercore.biz.messager.message.result.MessageCenterResult;
+ import com.alipay.couriercore.biz.messager.message.result.MessageCenterResultCode;
++import com.alipay.couriercore.common.service.integration.statusbar.StatusbarFacadeClient;
+ import com.alipay.couriercore.common.service.integration.statusbar.StatusbarQueryFacadeClient;
+ import com.alipay.couriercore.common.service.integration.tair.TairClient;
+ import com.alipay.sofa.platform.localcache.cache.CacheContainer;
+@@ -35,6 +37,7 @@
+ import com.alipay.statusbar.common.domain.QueryRequest;
+ import com.alipay.statusbar.common.domain.StatusbarRemindDigest;
+ import com.alipay.statusbar.common.domain.StatusbarRemindInfo;
++import com.alipay.statusbar.common.result.RemindOperateResult;
+ import com.alipay.statusbar.common.service.query.RemindPagingQueryResult;
+ 
+ /**
+@@ -59,6 +62,10 @@
+     /** 状态栏查询代理类 */
+     private StatusbarQueryFacadeClient statusbarQueryFacadeClient;
+ 
++    /** 状态栏操作服务客户端 */
++    @OsgiReference
++    private StatusbarFacadeClient      statusbarFacadeClient;
++
+     /**
+      * @see com.alipay.memberprod.biz.messager.message.MessageCenterManager#findNewMsgInfos(java.lang.String)
+      */
+@@ -314,6 +321,97 @@
+     }
+ 
+     /** 
++     * @see com.alipay.couriercore.biz.messager.message.MessageCenterManager#queryUserMessage(java.lang.String, java.util.List)
++     */
++    public MessageCenterResult queryUserMessage(String cardNo, List<String> statusList) {
++        // 1.参数检查
++        if (StringUtil.isBlank(cardNo)) {
++            return new MessageCenterResult(MessageCenterResultCode.ILLEGAL_ARGUMENTS);
++        }
++
++        // 3.查询消息列表
++        try {
++            QueryRequest request = new QueryRequest();
++            request.setCardNo(cardNo);
++            request.setStatus(statusList);
++            request.setHistory(false);
++            List<StatusbarRemindInfo> statusbarRemindInfos = statusbarQueryFacadeClient
++                .queryListNoPaging(request);
++
++            // 4.返回查询结果
++            return new MessageCenterResult(statusbarRemindInfos, MessageCenterResultCode.SUCCESS);
++
++        } catch (Exception e) {
++            logger.error("[(查询新消息信息失败)(调用statusbar服务异常)]", e);
++            return new MessageCenterResult(MessageCenterResultCode.SYSTEM_ERROR);
++        }
++    }
++
++    /** 
++     * @see com.alipay.couriercore.biz.messager.message.MessageCenterManager#queryUserMessagePaging(java.lang.String, int, int)
++     */
++    public MessageCenterResult queryUserMessagePaging(String cardNo, int pageNo, int pageSize) {
++        if (StringUtil.isBlank(cardNo) || pageNo < 0 || pageSize < 0) {
++            return new MessageCenterResult(MessageCenterResultCode.ILLEGAL_ARGUMENTS);
++        }
++        try {
++            QueryRequest request = new QueryRequest();
++            request.setCardNo(cardNo);
++            request.setHistory(false);
++            RemindPagingQueryResult queryResult = statusbarQueryFacadeClient.queryListPaging(
++                request, pageNo, pageSize);
++            if (!queryResult.isSuccess()) {
++                logger.warn("分页查询失败。cardNo=" + cardNo + ",resultCode："
++                            + queryResult.getResultCode());
++                return new MessageCenterResult(MessageCenterResultCode.SERVICES_RETURN_FAIL);
++            }
++            MessageCenterResult result = new MessageCenterResult(queryResult.getRemindList(),
++                MessageCenterResultCode.SUCCESS);
++            result.setPageCount(queryResult.getPages());
++            result.setPageNum(queryResult.getPageNum());
++            result.setTotalSize(queryResult.getTotalSize());
++            // 4.返回查询结果
++            return result;
++
++        } catch (Exception e) {
++            logger.error("分页查询消息失败。cardNo=" + cardNo, e);
++            return new MessageCenterResult(MessageCenterResultCode.SYSTEM_ERROR);
++        }
++
++    }
++
++    /** 
++     * @see com.alipay.couriercore.biz.messager.message.MessageCenterManager#modifyMsgStatus(java.lang.String, com.alipay.couriercore.biz.messager.message.enums.RemindStatusEnum, java.util.List)
++     */
++    public MessageCenterResult modifyMsgStatus(String cardNo, RemindStatusEnum status,
++                                               List<String> ids) {
++        if (StringUtil.isBlank(cardNo) || status == null || CollectionUtils.isEmpty(ids)) {
++            return new MessageCenterResult(MessageCenterResultCode.ILLEGAL_ARGUMENTS);
++        }
++
++        try {
++            RemindOperateResult result = statusbarFacadeClient.modifyRemindStatus(cardNo, status
++                .getCode(), ids);
++            if (!result.isSuccess()) {
++                logger.warn("更新消息状态失败 。cardNo=" + cardNo + ",ids=" + ids + ",result="
++                            + result.getResultCode());
++                return new MessageCenterResult(MessageCenterResultCode.SERVICES_RETURN_FAIL);
++            }
++
++            if (logger.isInfoEnabled()) {
++                logger.info("更新消息状态。cardNo=" + cardNo + ",status=" + status + ",result="
++                            + result.getResultInfo());
++            }
++
++        } catch (Exception e) {
++            logger.error("更改消息状态发生异常。cardNo=" + cardNo + ",ids=" + ids, e);
++            return new MessageCenterResult(MessageCenterResultCode.SYSTEM_ERROR);
++        }
++
++        return new MessageCenterResult(MessageCenterResultCode.SUCCESS);
++    }
++
++    /** 
+      * @see com.alipay.couriercore.biz.messager.message.MessageCenterManager#getCount(java.lang.String, java.lang.String)
+      */
+     public int getCount(String cardNo, String version) {
+Index: app/biz/messager/src/main/java/com/alipay/couriercore/biz/messager/message/enums/RemindStatusEnum.java
+===================================================================
+--- app/biz/messager/src/main/java/com/alipay/couriercore/biz/messager/message/enums/RemindStatusEnum.java	(revision 0)
++++ app/biz/messager/src/main/java/com/alipay/couriercore/biz/messager/message/enums/RemindStatusEnum.java	(revision 2676)
+@@ -0,0 +1,80 @@
++/**
++ * Alipay.com Inc.
++ * Copyright (c) 2004-2013 All Rights Reserved.
++ */
++package com.alipay.couriercore.biz.messager.message.enums;
++
++import com.alibaba.common.lang.StringUtil;
++
++/**
++ * 消息状态枚举
++ * 
++ * @author shuhan.zhu
++ * @version $Id: RemindStatusEnum.java, v 0.1 2013-8-5 下午01:25:10 shuhan.zhu Exp $
++ */
++public enum RemindStatusEnum {
++
++    /** 新消息 */
++    NEW("0", "新消息"),
++
++    /** 忽略 */
++    READ("1", "已读"),
++
++    /** 已处理 */
++    DEAL("2", "已处理");
++
++    /** 消息状态编码 */
++    private final String code;
++
++    /** 消息状态描述 */
++    private final String desc;
++
++    /**
++     * @param code
++     * @param desc
++     */
++    private RemindStatusEnum(String code, String desc) {
++        this.code = code;
++        this.desc = desc;
++    }
++
++    /**
++     * 通过code取枚举类
++     * 
++     * @param code
++     * @return 如果对应value的枚举类不存在，则返回<code>NULL</code>
++     */
++    public static RemindStatusEnum getEnumByCode(String code) {
++
++        if (StringUtil.isBlank(code)) {
++            return null;
++        }
++
++        for (RemindStatusEnum each : values()) {
++            if (StringUtil.equals(each.getCode(), code)) {
++                return each;
++            }
++        }
++
++        return null;
++    }
++
++    /**
++     * Getter method for property <tt>code</tt>.
++     * 
++     * @return property value of code
++     */
++    public String getCode() {
++        return code;
++    }
++
++    /**
++     * Getter method for property <tt>desc</tt>.
++     * 
++     * @return property value of desc
++     */
++    public String getDesc() {
++        return desc;
++    }
++
++}
+Index: app/tester/src/test/java/com/alipay/couriercore/servicetest/base/tbCache/TaobaoCacheComponent.java
+===================================================================
+--- app/tester/src/test/java/com/alipay/couriercore/servicetest/base/tbCache/TaobaoCacheComponent.java	(revision 2613)
++++ app/tester/src/test/java/com/alipay/couriercore/servicetest/base/tbCache/TaobaoCacheComponent.java	(revision 2676)
+@@ -55,8 +55,7 @@
+      * @param clazz
+      * @return
+      */
+-
+-    @SuppressWarnings({ "rawtypes" })
++    @SuppressWarnings("unchecked")
+     public Object findObjectFromCache(String key, Class clazz, int timeOut);
+ 
+ }
+Index: app/tester/src/test/java/com/alipay/couriercore/servicetest/base/tbCache/TaobaoCacheComponentImpl.java
+===================================================================
+--- app/tester/src/test/java/com/alipay/couriercore/servicetest/base/tbCache/TaobaoCacheComponentImpl.java	(revision 2613)
++++ app/tester/src/test/java/com/alipay/couriercore/servicetest/base/tbCache/TaobaoCacheComponentImpl.java	(revision 2676)
+@@ -63,7 +63,7 @@
+         }
+     }
+ 
+-    @SuppressWarnings({ "unchecked", "rawtypes" })
++    @SuppressWarnings( { "unchecked" })
+     public Object findObjectFromCache(String key, Class clazz, int timeOut) {
+         Object result = null;
+         byte[] value = (byte[]) get(key, timeOut);
+Index: app/tester/src/test/java/com/alipay/couriercore/servicetest/util/CsvGenareteCode.java
+===================================================================
+--- app/tester/src/test/java/com/alipay/couriercore/servicetest/util/CsvGenareteCode.java	(revision 2613)
++++ app/tester/src/test/java/com/alipay/couriercore/servicetest/util/CsvGenareteCode.java	(revision 2676)
+@@ -46,7 +46,6 @@
+                     + line + ")" + "\n" + "{}" + "\n" + "}" + "\n" + "*******************");
+     }
+ 
+-    @SuppressWarnings("resource")
+     public String[] readCsv(String fileName) {
+         String item[] = null;
+         try {
+Index: app/common/util/src/main/java/com/alipay/couriercore/common/enums/CommunicationEnum.java
+===================================================================
+--- app/common/util/src/main/java/com/alipay/couriercore/common/enums/CommunicationEnum.java	(revision 2613)
++++ app/common/util/src/main/java/com/alipay/couriercore/common/enums/CommunicationEnum.java	(revision 2676)
+@@ -328,17 +328,21 @@
+ 
+     // 59.
+     PAYCORE_EBANK_CERDIT_GW_DEPOSIT_BACK("PAYCORE_EBANK_CERDIT_GW_DEPOSIT_BACK", "充退申请"),
+-    
++
+     PAYCORE_DEPOSITBACK_TRADE_APPLY("PAYCORE_DEPOSITBACK_TRADE_APPLY", "交易充退申请"),
+-    
++
+     PAYCORE_DEPOSITBACK_TRADE_FAIL_BUYER_T("PAYCORE_DEPOSITBACK_TRADE_FAIL_BUYER_T", "T用户交易充退失败"),
+-    
+-    PAYCORE_DEPOSITBACK_TRADE_FAIL_BUYER_UNT("PAYCORE_DEPOSITBACK_TRADE_FAIL_BUYER_UNT", "非T用户买家交易充退失败"),
+-    
++
++    PAYCORE_DEPOSITBACK_TRADE_SUCCES("PAYCORE_DEPOSITBACK_TRADE_SUCCES", "交易充退成功"),
++
++    PAYCORE_DEPOSITBACK_TRADE_FAIL_BUYER_UNT("PAYCORE_DEPOSITBACK_TRADE_FAIL_BUYER_UNT",
++                                             "非T用户买家交易充退失败"),
++
+     PAYCORE_DEPOSITBACK_TRADE_FAIL_SELLER("PAYCORE_DEPOSITBACK_TRADE_FAIL_SELLER", "卖家交易充退失败"),
+-    
+-    PAYCORE_DEPOSITBACK_TRADE_FAIL_COMMON_ACCOUNT("PAYCORE_DEPOSITBACK_TRADE_FAIL_COMMON_ACCOUNT", "公共账户交易充退失败"),
+ 
++    PAYCORE_DEPOSITBACK_TRADE_FAIL_COMMON_ACCOUNT("PAYCORE_DEPOSITBACK_TRADE_FAIL_COMMON_ACCOUNT",
++                                                  "公共账户交易充退失败"),
++
+     XS_B_SECURED_TRADE_WAIT_PAY_WEX("XS_B_SECURED_TRADE_WAIT_PAY_WEX", "卖家创建了担保交易等我付款"),
+ 
+     XS_B_DNUV_WX("XS_B_DNUV_WX", "买家逾期未上传凭证，自动关闭退款"),
+Index: app/common/service/integration/src/main/resources/META-INF/spring/common-service-integration-csaccurate.xml
+===================================================================
+--- app/common/service/integration/src/main/resources/META-INF/spring/common-service-integration-csaccurate.xml	(revision 0)
++++ app/common/service/integration/src/main/resources/META-INF/spring/common-service-integration-csaccurate.xml	(revision 2676)
+@@ -0,0 +1,27 @@
++<?xml version="1.0" encoding="GBK"?>
++
++<beans xmlns="http://www.springframework.org/schema/beans"
++	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
++	xmlns:p="http://www.springframework.org/schema/p"
++	xmlns:sofa="http://img.alipay.net/dtd/schema/service"
++	xmlns:context="http://www.springframework.org/schema/context"
++	xmlns:webflow="http://www.springframework.org/schema/webflow-config"
++	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
++         http://img.alipay.net/dtd/schema/service http://img.alipay.net/dtd/schema/service/sofa-service.xsd
++         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
++         http://www.springframework.org/schema/webflow-config http://www.springframework.org/schema/webflow-config/spring-webflow-config-2.0.xsd"
++	default-autowire="byName">
++
++	
++	<!-- 精准服务平台服务 -->
++	<sofa:reference id="accurateService" version="1.0.0" 
++		interface="com.alipay.csaccurate.service.facade.api.AccurateService">
++		<sofa:binding.tr testURL="${csaccurate_tr_service_url}">
++			<method name="recommendKnowledge" type="sync"/>
++		</sofa:binding.tr>
++	</sofa:reference>
++	
++	<bean id="accurateServiceClient" class="com.alipay.couriercore.common.service.integration.csaccurate.AccurateServiceClientImpl"/>
++	<sofa:service ref="accurateServiceClient" interface="com.alipay.couriercore.common.service.integration.csaccurate.AccurateServiceClient" />
++	
++</beans>
+Index: app/common/service/integration/src/main/resources/META-INF/spring/common-service-integration-statusbar.xml
+===================================================================
+--- app/common/service/integration/src/main/resources/META-INF/spring/common-service-integration-statusbar.xml	(revision 2613)
++++ app/common/service/integration/src/main/resources/META-INF/spring/common-service-integration-statusbar.xml	(revision 2676)
+@@ -22,12 +22,28 @@
+ 		</sofa:binding.ws>
+ 	</sofa:reference>
+ 	
++	<!-- 状态栏操作服务 -->
++	<sofa:reference id="statusbarFacade" interface="com.alipay.statusbar.common.service.StatusbarFacade">
++		<sofa:binding.ws testURL="${statusbar_service_url}">
++			<attributes http.connection.manager.timeout="1000"
++				http.connection.timeout="2000" http.timeout="5000"
++				max.connections.per.host="10" max.total.connections="80" />
++				<compatible>
++					<vip>${statusbar_service_url}</vip>
++				</compatible>
++		</sofa:binding.ws>
++	</sofa:reference>
++	
+ 	<!-- =================================================================== -->
+ 	<!-- ============================Client 配置============================ -->
+ 	<!-- =================================================================== -->
+ 	<!-- 状态栏查询服务 -->
+ 	<bean id="statusbarQueryFacadeClient" class="com.alipay.couriercore.common.service.integration.statusbar.StatusbarQueryFacadeClientImpl" />
+ 	<sofa:service ref="statusbarQueryFacadeClient" interface="com.alipay.couriercore.common.service.integration.statusbar.StatusbarQueryFacadeClient" />
++	
++	<!-- 状态栏操作服务 -->
++	<bean id="statusbarFacadeClient" class="com.alipay.couriercore.common.service.integration.statusbar.StatusbarFacadeClientImpl" />
++	<sofa:service ref="statusbarFacadeClient" interface="com.alipay.couriercore.common.service.integration.statusbar.StatusbarFacadeClient" />
+ 
+ </beans>
+ 
+Index: app/common/service/integration/src/main/resources/META-INF/MANIFEST.MF
+===================================================================
+--- app/common/service/integration/src/main/resources/META-INF/MANIFEST.MF	(revision 2613)
++++ app/common/service/integration/src/main/resources/META-INF/MANIFEST.MF	(revision 2676)
+@@ -18,6 +18,7 @@
+  common-service-integration-statusbar.xml,
+  common-service-integration-mobilecmng.xml,
+  common-service-integration-userview.xml,
++ common-service-integration-csaccurate.xml,
+  common-service-integration-securitycore.xml
+  
+  
+Index: app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/csaccurate/AccurateServiceClient.java
+===================================================================
+--- app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/csaccurate/AccurateServiceClient.java	(revision 0)
++++ app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/csaccurate/AccurateServiceClient.java	(revision 2676)
+@@ -0,0 +1,25 @@
++/**
++ * Alipay.com Inc.
++ * Copyright (c) 2004-2011 All Rights Reserved.
++ */
++package com.alipay.couriercore.common.service.integration.csaccurate;
++
++import com.alipay.csaccurate.service.facade.req.ServiceSourceReq;
++import com.alipay.csaccurate.service.facade.result.RecommendationResult;
++
++/**
++ * 精准服务接口的客户端。
++ * 
++ * @author yanying
++ * @version $Id: AccurateServiceClient.java, v 0.1 2013-8-21 上午11:33:09 yanying Exp $
++ */
++public interface AccurateServiceClient {
++
++    /**
++     * 请求推荐知识型帮助方案。
++     * 
++     * @param source 服务来源
++     * @return 推荐方案返回对象
++     */
++    public RecommendationResult recommendKnowledge(ServiceSourceReq source);
++}
+Index: app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/csaccurate/AccurateServiceClientImpl.java
+===================================================================
+--- app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/csaccurate/AccurateServiceClientImpl.java	(revision 0)
++++ app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/csaccurate/AccurateServiceClientImpl.java	(revision 2676)
+@@ -0,0 +1,48 @@
++/**
++ * Alipay.com Inc.
++ * Copyright (c) 2004-2011 All Rights Reserved.
++ */
++package com.alipay.couriercore.common.service.integration.csaccurate;
++
++import com.alibaba.common.logging.Logger;
++import com.alibaba.common.logging.LoggerFactory;
++import com.alipay.csaccurate.service.facade.api.AccurateService;
++import com.alipay.csaccurate.service.facade.req.ServiceSourceReq;
++import com.alipay.csaccurate.service.facade.result.RecommendationResult;
++
++/**
++ * 精准服务客户端的实现类。
++ * 
++ * @author yanying
++ * @version $Id: AccurateServiceClientImpl.java, v 0.1 2013-8-21 上午11:34:57 yanying Exp $
++ */
++public class AccurateServiceClientImpl implements AccurateServiceClient {
++
++    /** 日志 */
++    private static final Logger logger = LoggerFactory.getLogger(AccurateServiceClientImpl.class);
++
++    /** 精准服务接口 */
++    private AccurateService     accurateService;
++
++    /**
++     * @see com.alipay.couriercore.common.service.integration.csaccurate.AccurateServiceClient#recommendKnowledge(com.alipay.csaccurate.service.facade.req.ServiceSourceReq)
++     */
++    public RecommendationResult recommendKnowledge(ServiceSourceReq source) {
++        try {
++            return accurateService.recommendKnowledge(source);
++        } catch (Exception e) {
++            logger.error("调用accurate服务异常。", e);
++            return null;
++        }
++    }
++
++    /**
++     * Setter method for property <tt>accurateService</tt>.
++     * 
++     * @param accurateService value to be assigned to property accurateService
++     */
++    public void setAccurateService(AccurateService accurateService) {
++        this.accurateService = accurateService;
++    }
++
++}
+Index: app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/tair/TairClientImpl.java
+===================================================================
+--- app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/tair/TairClientImpl.java	(revision 2613)
++++ app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/tair/TairClientImpl.java	(revision 2676)
+@@ -25,7 +25,7 @@
+     /** 
+      * @see com.alipay.couriercore.common.service.integration.tair.TairClient#findObjectFromCache(java.lang.String, java.lang.Class, int)
+      */
+-    @SuppressWarnings({ "unchecked", "rawtypes" })
++    @SuppressWarnings( { "unchecked" })
+     public Object findObjectFromCache(String key, Class clazz, int timeOut) {
+         try {
+             Object result = get(key, timeOut);
+Index: app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/tair/TairClient.java
+===================================================================
+--- app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/tair/TairClient.java	(revision 2613)
++++ app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/tair/TairClient.java	(revision 2676)
+@@ -60,6 +60,6 @@
+      * @return
+      */
+     @NonPrintLog
+-    @SuppressWarnings({ "rawtypes" })
++    @SuppressWarnings( { "unchecked" })
+     public Object findObjectFromCache(String key, Class clazz, int timeOut);
+ }
+Index: app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/statusbar/StatusbarFacadeClient.java
+===================================================================
+--- app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/statusbar/StatusbarFacadeClient.java	(revision 0)
++++ app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/statusbar/StatusbarFacadeClient.java	(revision 2676)
+@@ -0,0 +1,28 @@
++/**
++ * Alipay.com Inc.
++ * Copyright (c) 2004-2013 All Rights Reserved.
++ */
++package com.alipay.couriercore.common.service.integration.statusbar;
++
++import java.util.List;
++
++import com.alipay.statusbar.common.result.RemindOperateResult;
++
++/**
++ * 状态栏操作服务。
++ * 
++ * @author shuhan.zhu
++ * @version $Id: StatsubarFacadeClient.java, v 0.1 2013-8-21 上午10:24:05 shuhan.zhu Exp $
++ */
++public interface StatusbarFacadeClient {
++
++    /**
++     * 更改现有消息状态标记
++     * 
++     * @param cardNo  用户ID
++     * @param status  状态，R：已读,D：已处理
++     * @param idList  消息ID列表
++     * @return        操作结果
++     */
++    public RemindOperateResult modifyRemindStatus(String cardNo, String status, List<String> idList);
++}
+Index: app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/statusbar/StatusbarFacadeClientImpl.java
+===================================================================
+--- app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/statusbar/StatusbarFacadeClientImpl.java	(revision 0)
++++ app/common/service/integration/src/main/java/com/alipay/couriercore/common/service/integration/statusbar/StatusbarFacadeClientImpl.java	(revision 2676)
+@@ -0,0 +1,38 @@
++/**
++ * Alipay.com Inc.
++ * Copyright (c) 2004-2013 All Rights Reserved.
++ */
++package com.alipay.couriercore.common.service.integration.statusbar;
++
++import java.util.List;
++
++import com.alipay.statusbar.common.result.RemindOperateResult;
++import com.alipay.statusbar.common.service.StatusbarFacade;
++
++/**
++ * 状态栏操作服务实现
++ * 
++ * @author shuhan.zhu
++ * @version $Id: StatsubarFacadeClientImpl.java, v 0.1 2013-8-21 上午10:26:10 shuhan.zhu Exp $
++ */
++public class StatusbarFacadeClientImpl implements StatusbarFacadeClient {
++
++    private StatusbarFacade statusbarFacade;
++
++    /** 
++     * @see com.alipay.couriercore.common.service.integration.statusbar.StatusbarFacadeClient#modifyRemindStatus(java.lang.String, java.lang.String, java.util.List)
++     */
++    public RemindOperateResult modifyRemindStatus(String cardNo, String status, List<String> idList) {
++        return statusbarFacade.modifyRemindStatus(cardNo, status, idList);
++    }
++
++    /**
++     * Setter method for property <tt>statusbarFacade</tt>.
++     * 
++     * @param statusbarFacade value to be assigned to property statusbarFacade
++     */
++    public void setStatusbarFacade(StatusbarFacade statusbarFacade) {
++        this.statusbarFacade = statusbarFacade;
++    }
++
++}
+Index: app/common/service/integration/pom.xml
+===================================================================
+--- app/common/service/integration/pom.xml	(revision 2613)
++++ app/common/service/integration/pom.xml	(revision 2676)
+@@ -37,6 +37,10 @@
+ 			<artifactId>userview-common-service-facade</artifactId>
+ 		</dependency>
+ 		<dependency>
++			<groupId>com.alipay.csaccurate</groupId>
++			<artifactId>csaccurate-common-service-facade</artifactId>
++		</dependency>
++		<dependency>
+ 			<groupId>com.alipay.sbs</groupId>
+ 			<artifactId>sbs-common-domain</artifactId>
+ 			<version>1.5.0.20091021</version>
+Index: app/core/model/src/main/java/com/alipay/couriercore/core/model/CourierTemplateModel.java
+===================================================================
+--- app/core/model/src/main/java/com/alipay/couriercore/core/model/CourierTemplateModel.java	(revision 2613)
++++ app/core/model/src/main/java/com/alipay/couriercore/core/model/CourierTemplateModel.java	(revision 2676)
+@@ -6,7 +6,6 @@
+ 
+ import java.util.Map;
+ 
+-
+ /**
+  * 模板消息模型
+  * 
+@@ -15,6 +14,12 @@
+  */
+ public class CourierTemplateModel extends CourierModel {
+ 
++    /** 进度条节点步骤 */
++    private String              currentStep;
++
++    /** 进度条节点标志 */
++    private String              isCorrect;
++
+     /**消息内容模板参数*/
+     private Map<String, Object> msgArgs;
+ 
+@@ -36,4 +41,40 @@
+         this.msgArgs = msgArgs;
+     }
+ 
++    /**
++     * Getter method for property <tt>currentStep</tt>.
++     * 
++     * @return property value of currentStep
++     */
++    public String getCurrentStep() {
++        return currentStep;
++    }
++
++    /**
++     * Setter method for property <tt>currentStep</tt>.
++     * 
++     * @param currentStep value to be assigned to property currentStep
++     */
++    public void setCurrentStep(String currentStep) {
++        this.currentStep = currentStep;
++    }
++
++    /**
++     * Getter method for property <tt>isCorrect</tt>.
++     * 
++     * @return property value of isCorrect
++     */
++    public String getIsCorrect() {
++        return isCorrect;
++    }
++
++    /**
++     * Setter method for property <tt>isCorrect</tt>.
++     * 
++     * @param isCorrect value to be assigned to property isCorrect
++     */
++    public void setIsCorrect(String isCorrect) {
++        this.isCorrect = isCorrect;
++    }
++
+ }
+Index: app/core/service/src/main/java/com/alipay/couriercore/core/service/components/CourierMessageSendComponentImpl.java
+===================================================================
+--- app/core/service/src/main/java/com/alipay/couriercore/core/service/components/CourierMessageSendComponentImpl.java	(revision 2613)
++++ app/core/service/src/main/java/com/alipay/couriercore/core/service/components/CourierMessageSendComponentImpl.java	(revision 2676)
+@@ -62,7 +62,7 @@
+         messageInfo.setServiceCode(model.getServiceCode());
+         messageInfo.setTemplateArgs(templateModel.getMsgArgs());
+         messageInfo.setUserId(model.getUserId());
+-        messageInfo.setExtInfo(constuctExtInfo(model));
++        messageInfo.setExtInfo(constuctExtInfo(templateModel));
+ 
+         try {
+             MessageSendResult result = gotoneMessageSendServiceClient.sendMessage(messageInfo);
+@@ -76,8 +76,8 @@
+ 
+         } finally {
+             if (monitorLogger.isInfoEnabled()) {
+-                monitorLogger.info(LoggerUtil.getMonitorLog(model.getBusinessId(),
+-                    model.getServiceCode(), model.getUserId(), startTime, flag));
++                monitorLogger.info(LoggerUtil.getMonitorLog(model.getBusinessId(), model
++                    .getServiceCode(), model.getUserId(), startTime, flag));
+             }
+         }
+ 
+@@ -90,7 +90,7 @@
+      * @param model
+      * @return
+      */
+-    private Map<String, Object> constuctExtInfo(CourierModel model) {
++    private Map<String, Object> constuctExtInfo(CourierTemplateModel model) {
+         Map<String, Object> map = new HashMap<String, Object>();
+         if (model.getMailChannel() != null) {
+             map.put(ExtInfoEnum.EMAIL.getValue(), model.getMailChannel());
+@@ -111,6 +111,15 @@
+         if (model.getBusinessSub() != null) {
+             map.put(ExtInfoEnum.SUBSCRIBE.getValue(), model.getBusinessSub().toString());
+         }
++
++        if (StringUtil.isNotBlank(model.getCurrentStep())) {
++            map.put(ExtInfoEnum.CURRENT_STEP.getValue(), model.getCurrentStep());
++        }
++
++        if (StringUtil.isNotBlank(model.getIsCorrect())) {
++            map.put(ExtInfoEnum.IS_CORRECT.getValue(), model.getIsCorrect());
++        }
++
+         return map;
+     }
+ 
+@@ -119,7 +128,8 @@
+      * 
+      * @param gotoneMessageSendServiceClient value to be assigned to property gotoneMessageSendServiceClient
+      */
+-    public void setGotoneMessageSendServiceClient(GotoneMessageSendServiceClient gotoneMessageSendServiceClient) {
++    public void setGotoneMessageSendServiceClient(
++                                                  GotoneMessageSendServiceClient gotoneMessageSendServiceClient) {
+         this.gotoneMessageSendServiceClient = gotoneMessageSendServiceClient;
+     }
+ 
+Index: app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/ajax/MessageHandleAjax.java
+===================================================================
+--- app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/ajax/MessageHandleAjax.java	(revision 0)
++++ app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/ajax/MessageHandleAjax.java	(revision 2676)
+@@ -0,0 +1,138 @@
++/**
++ * Alipay.com Inc.
++ * Copyright (c) 2004-2013 All Rights Reserved.
++ */
++package com.alipay.couriercore.web.messager.message.ajax;
++
++import java.util.ArrayList;
++import java.util.List;
++
++import org.springframework.osgi.context.annotation.OsgiReference;
++import org.springframework.stereotype.Controller;
++import org.springframework.ui.ModelMap;
++import org.springframework.util.CollectionUtils;
++import org.springframework.web.bind.annotation.RequestMapping;
++
++import com.alibaba.common.lang.StringUtil;
++import com.alipay.couriercore.biz.messager.message.MessageCenterManager;
++import com.alipay.couriercore.biz.messager.message.enums.RemindStatusEnum;
++import com.alipay.couriercore.biz.messager.message.result.MessageCenterResult;
++import com.alipay.couriercore.web.home.helper.LogonHelper;
++import com.alipay.couriercore.web.home.helper.constant.ResultConstants;
++import com.alipay.couriercore.web.messager.message.converter.MessageConverter;
++
++/**
++ * 消息处理相关的json接口
++ * <p>
++ *   包含详细查询、详细状态更新
++ * </p>
++ * 
++ * @author shuhan.zhu
++ * @version $Id: MessageHandleAjax.java, v 0.1 2013-8-20 下午02:15:34 shuhan.zhu Exp $
++ */
++@Controller
++public class MessageHandleAjax {
++
++    /** 消息中心业务管理类 */
++    @OsgiReference
++    private MessageCenterManager messageCenterManager;
++
++    /** 息中心转换帮助类 */
++    private MessageConverter     messageConverter;
++
++    /**
++     * 查询未处理消息
++     * 
++     * @param model
++     */
++    @RequestMapping(value = "/getNewMsg.json")
++    public void queryNewMessage(ModelMap model) {
++        MessageCenterResult result = messageCenterManager.queryUserMessage(LogonHelper.getUserId(),
++            buildStatus());
++        if (result.isSuccess()) {
++            model.addAttribute(ResultConstants.KEY_RETURN_STAT,
++                ResultConstants.VALUE_RETURN_STAT_OK);
++            model.addAttribute(ResultConstants.KEY_JSON_OBJECT, messageConverter.converter(result
++                .getResult()));
++        } else {
++            model.addAttribute(ResultConstants.KEY_RETURN_STAT,
++                ResultConstants.VALUE_RETURN_STAT_FAIL);
++        }
++
++    }
++
++    /**
++     * 更新消息状态
++     * 
++     * @param model
++     * @param ids
++     */
++    @RequestMapping(value = "/modifyMsgStatus.json")
++    public void modifyMsgStatus(ModelMap model, String ids, String status) {
++        //1.校验参数
++        if (StringUtil.isBlank(ids) || StringUtil.isBlank(status)
++            || RemindStatusEnum.getEnumByCode(status) == null) {
++            model.addAttribute(ResultConstants.KEY_RETURN_STAT,
++                ResultConstants.VALUE_RETURN_STAT_FAIL);
++            model.addAttribute(ResultConstants.KEY_RETURN_MSG, "参数不合法");
++            return;
++        }
++
++        //2.将id 字符串转换成list
++        List<String> idList = new ArrayList<String>();
++        String idArr[] = StringUtil.split(ids, ",");
++        for (String id : idArr) {
++            if (StringUtil.isNotBlank(id)) {
++                idList.add(id);
++            }
++        }
++
++        if (CollectionUtils.isEmpty(idList)) {
++            model.addAttribute(ResultConstants.KEY_RETURN_STAT,
++                ResultConstants.VALUE_RETURN_STAT_OK);
++            return;
++        }
++
++        //3.更新状态
++        MessageCenterResult result = messageCenterManager.modifyMsgStatus(LogonHelper.getUserId(),
++            RemindStatusEnum.getEnumByCode(status), idList);
++        if (result.isSuccess()) {
++            model.addAttribute(ResultConstants.KEY_RETURN_STAT,
++                ResultConstants.VALUE_RETURN_STAT_OK);
++        } else {
++            model.addAttribute(ResultConstants.KEY_RETURN_STAT,
++                ResultConstants.VALUE_RETURN_STAT_FAIL);
++        }
++    }
++
++    /**
++     * 构建未处理消息状态列表
++     * 
++     * @return
++     */
++    private List<String> buildStatus() {
++        List<String> statusList = new ArrayList<String>();
++        statusList.add(RemindStatusEnum.NEW.getCode());
++        statusList.add(RemindStatusEnum.READ.getCode());
++        return statusList;
++    }
++
++    /**
++     * Setter method for property <tt>messageCenterManager</tt>.
++     * 
++     * @param messageCenterManager value to be assigned to property messageCenterManager
++     */
++    public void setMessageCenterManager(MessageCenterManager messageCenterManager) {
++        this.messageCenterManager = messageCenterManager;
++    }
++
++    /**
++     * Setter method for property <tt>messageConverter</tt>.
++     * 
++     * @param messageConverter value to be assigned to property messageConverter
++     */
++    public void setMessageConverter(MessageConverter messageConverter) {
++        this.messageConverter = messageConverter;
++    }
++
++}
+Index: app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/vo/BusinessStepVo.java
+===================================================================
+--- app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/vo/BusinessStepVo.java	(revision 0)
++++ app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/vo/BusinessStepVo.java	(revision 2676)
+@@ -0,0 +1,104 @@
++/**
++ * Alipay.com Inc.
++ * Copyright (c) 2004-2013 All Rights Reserved.
++ */
++package com.alipay.couriercore.web.messager.message.vo;
++
++import java.io.Serializable;
++
++/**
++ * 节点信息
++ * 
++ * @author shuhan.zhu
++ * @version $Id: BusinessStepVO.java, v 0.1 2013-8-20 下午03:27:06 shuhan.zhu Exp $
++ */
++public class BusinessStepVo implements Serializable {
++
++    /** uid */
++    private static final long serialVersionUID = 7264944007543561849L;
++
++    /** 节点标题 */
++    private String            title;
++
++    /** 节点内容 */
++    private String            content;
++
++    /** 节点时间 */
++    private String            stepTime;
++
++    /** 节点顺序 */
++    private int               stepOrder;
++
++    /**
++     * Getter method for property <tt>title</tt>.
++     * 
++     * @return property value of title
++     */
++    public String getTitle() {
++        return title;
++    }
++
++    /**
++     * Setter method for property <tt>title</tt>.
++     * 
++     * @param title value to be assigned to property title
++     */
++    public void setTitle(String title) {
++        this.title = title;
++    }
++
++    /**
++     * Getter method for property <tt>content</tt>.
++     * 
++     * @return property value of content
++     */
++    public String getContent() {
++        return content;
++    }
++
++    /**
++     * Setter method for property <tt>content</tt>.
++     * 
++     * @param content value to be assigned to property content
++     */
++    public void setContent(String content) {
++        this.content = content;
++    }
++
++    /**
++     * Getter method for property <tt>stepTime</tt>.
++     * 
++     * @return property value of stepTime
++     */
++    public String getStepTime() {
++        return stepTime;
++    }
++
++    /**
++     * Setter method for property <tt>stepTime</tt>.
++     * 
++     * @param stepTime value to be assigned to property stepTime
++     */
++    public void setStepTime(String stepTime) {
++        this.stepTime = stepTime;
++    }
++
++    /**
++     * Getter method for property <tt>stepOrder</tt>.
++     * 
++     * @return property value of stepOrder
++     */
++    public int getStepOrder() {
++        return stepOrder;
++    }
++
++    /**
++     * Setter method for property <tt>stepOrder</tt>.
++     * 
++     * @param stepOrder value to be assigned to property stepOrder
++     */
++    public void setStepOrder(int stepOrder) {
++        this.stepOrder = stepOrder;
++    }
++
++}
+Index: app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/vo/MsgInfoVo.java
+===================================================================
+--- app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/vo/MsgInfoVo.java	(revision 2613)
++++ app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/vo/MsgInfoVo.java	(revision 2676)
+@@ -5,6 +5,7 @@
+ package com.alipay.couriercore.web.messager.message.vo;
+ 
+ import java.io.Serializable;
++import java.util.List;
+ 
+ /**
+  * 消息主体VO模型
+@@ -15,40 +16,61 @@
+ public class MsgInfoVo implements Serializable {
+ 
+     /** serialVersionUID */
+-    private static final long serialVersionUID = -309752400837776343L;
++    private static final long    serialVersionUID = -309752400837776343L;
+ 
+     /** ID */
+-    private String            id;
++    private String               id;
+ 
++    /** 消息code */
++    private String               remindScene;
++
+     /** 优先级(页面优先级1-高优先 2-普通 3-低优先) */
+-    private String            level;
++    private String               level;
+ 
+     /** 优先级0-9 */
+-    private String            priority;
++    private String               priority;
+ 
+     /** 消息文案 */
+-    private String            content;
++    private String               content;
+ 
+     /** 是否能够手动删除 */
+-    private boolean           canDeleted;
++    private boolean              canDeleted;
+ 
+     /** 是否点击即删除 */
+-    private boolean           deleteOnClick;
++    private boolean              deleteOnClick;
+ 
+     /** 消息链接 */
+-    private String            url;
++    private String               url;
+ 
+     /** 消息分类,账户安全、账户成长等 */
+-    private String            msgGroup;
++    private String               msgGroup;
+ 
+     /** 消息标签,退款、付款、代付等 */
+-    private String            msgTag;
++    private String               msgTag;
+ 
++    /** 消息标题 */
++    private String               title;
++
++    /** 消息展现形式,0:纯文本,1:进度条 */
++    private int                  appearance;
++
++    /** 消息当前节点,只针对进度条消息有效*/
++    private int                  currentStep;
++
++    /** 当前是否正常流程,false:异常分支。只针对进度条消息有效 */
++    private boolean              isCorrect;
++
++    /** 消息状态,0:未读,1：已读，2：已处理 */
++    private String               status;
++
++    /** 节点列表,进度条消息特有 */
++    private List<BusinessStepVo> stepList;
++
+     /** 消息发送日期 格式yyyy.MM.dd */
+-    private String            sendDate;
++    private String               sendDate;
+ 
+     /** 消息发送时间 格式HH:mm:ss */
+-    private String            sendTime;
++    private String               sendTime;
+ 
+     /**
+      * Getter method for property <tt>id</tt>.
+@@ -248,4 +270,130 @@
+         this.deleteOnClick = deleteOnClick;
+     }
+ 
++    /**
++     * Getter method for property <tt>title</tt>.
++     * 
++     * @return property value of title
++     */
++    public String getTitle() {
++        return title;
++    }
++
++    /**
++     * Setter method for property <tt>title</tt>.
++     * 
++     * @param title value to be assigned to property title
++     */
++    public void setTitle(String title) {
++        this.title = title;
++    }
++
++    /**
++     * Getter method for property <tt>appearance</tt>.
++     * 
++     * @return property value of appearance
++     */
++    public int getAppearance() {
++        return appearance;
++    }
++
++    /**
++     * Setter method for property <tt>appearance</tt>.
++     * 
++     * @param appearance value to be assigned to property appearance
++     */
++    public void setAppearance(int appearance) {
++        this.appearance = appearance;
++    }
++
++    /**
++     * Getter method for property <tt>currentStep</tt>.
++     * 
++     * @return property value of currentStep
++     */
++    public int getCurrentStep() {
++        return currentStep;
++    }
++
++    /**
++     * Setter method for property <tt>currentStep</tt>.
++     * 
++     * @param currentStep value to be assigned to property currentStep
++     */
++    public void setCurrentStep(int currentStep) {
++        this.currentStep = currentStep;
++    }
++
++    /**
++     * Getter method for property <tt>isCorrect</tt>.
++     * 
++     * @return property value of isCorrect
++     */
++    public boolean isCorrect() {
++        return isCorrect;
++    }
++
++    /**
++     * Setter method for property <tt>isCorrect</tt>.
++     * 
++     * @param isCorrect value to be assigned to property isCorrect
++     */
++    public void setCorrect(boolean isCorrect) {
++        this.isCorrect = isCorrect;
++    }
++
++    /**
++     * Getter method for property <tt>status</tt>.
++     * 
++     * @return property value of status
++     */
++    public String getStatus() {
++        return status;
++    }
++
++    /**
++     * Setter method for property <tt>status</tt>.
++     * 
++     * @param status value to be assigned to property status
++     */
++    public void setStatus(String status) {
++        this.status = status;
++    }
++
++    /**
++     * Getter method for property <tt>stepList</tt>.
++     * 
++     * @return property value of stepList
++     */
++    public List<BusinessStepVo> getStepList() {
++        return stepList;
++    }
++
++    /**
++     * Setter method for property <tt>stepList</tt>.
++     * 
++     * @param stepList value to be assigned to property stepList
++     */
++    public void setStepList(List<BusinessStepVo> stepList) {
++        this.stepList = stepList;
++    }
++
++    /**
++     * Getter method for property <tt>remindScene</tt>.
++     * 
++     * @return property value of remindScene
++     */
++    public String getRemindScene() {
++        return remindScene;
++    }
++
++    /**
++     * Setter method for property <tt>remindScene</tt>.
++     * 
++     * @param remindScene value to be assigned to property remindScene
++     */
++    public void setRemindScene(String remindScene) {
++        this.remindScene = remindScene;
++    }
++
+ }
+Index: app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/converter/MessageConverter.java
+===================================================================
+--- app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/converter/MessageConverter.java	(revision 2613)
++++ app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/converter/MessageConverter.java	(revision 2676)
+@@ -21,8 +21,10 @@
+ import com.alipay.couriercore.web.messager.message.constants.MessageConstants;
+ import com.alipay.couriercore.web.messager.message.enums.MessageLevelEnum;
+ import com.alipay.couriercore.web.messager.message.enums.MessageSendTimeEnum;
++import com.alipay.couriercore.web.messager.message.vo.BusinessStepVo;
+ import com.alipay.couriercore.web.messager.message.vo.HistoryTabViewModel;
+ import com.alipay.couriercore.web.messager.message.vo.MsgInfoVo;
++import com.alipay.statusbar.common.domain.StatusbarBusinessStep;
+ import com.alipay.statusbar.common.domain.StatusbarRemindInfo;
+ import com.iwallet.biz.common.util.DateUtil;
+ import com.iwallet.biz.common.util.DateUtils;
+@@ -69,7 +71,8 @@
+             return msgInfoVo;
+         }
+         msgInfoVo.setLevel(MessageLevelEnum.getEnumByPriority(remindInfo.getPriority()).getCode());
+-        msgInfoVo.setId(remindInfo.getRemindScene());
++        msgInfoVo.setId(remindInfo.getId());
++        msgInfoVo.setRemindScene(remindInfo.getRemindScene());
+         msgInfoVo.setMsgGroup(remindInfo.getRemindSceneGroup());
+         Map<String, String> remindSceneMap = messageCenterManager.getRemindSceneMap();
+         msgInfoVo.setMsgTag(remindSceneMap.get(remindInfo.getRemindSceneTag()));
+@@ -81,10 +84,56 @@
+         msgInfoVo.setPriority(String.valueOf(remindInfo.getPriority()));
+         msgInfoVo.setCanDeleted(remindInfo.isCanDeleted());
+         msgInfoVo.setDeleteOnClick(remindInfo.isDeleteOnClick());
++
++        msgInfoVo.setTitle(remindInfo.getTitle());
++        msgInfoVo.setAppearance(remindInfo.getAppearance());
++        msgInfoVo.setCurrentStep(remindInfo.getCurrentStep());
++        msgInfoVo.setCorrect(remindInfo.isCorrect());
++        msgInfoVo.setStatus(remindInfo.getStatus());
++
++        // 进度条消息
++        if (remindInfo.getAppearance() == 1) {
++            msgInfoVo.setStepList(convertToStepVoList(remindInfo.getStepList()));
++        }
++
+         return msgInfoVo;
+     }
+ 
+     /**
++     * 将List<StatusbarBusinessStep>转化为List<BusinessStepVo>
++     * 
++     * @param stepList
++     * @return
++     */
++    private List<BusinessStepVo> convertToStepVoList(List<StatusbarBusinessStep> stepList) {
++        List<BusinessStepVo> steps = new ArrayList<BusinessStepVo>();
++        if (CollectionUtils.isEmpty(stepList)) {
++            return steps;
++        }
++        for (StatusbarBusinessStep step : stepList) {
++            if (step != null) {
++                steps.add(convertToStepVo(step));
++            }
++        }
++        return steps;
++    }
++
++    /**
++     * 将StatusbarBusinessStep转化为BusinessStepVo
++     * 
++     * @param step
++     * @return
++     */
++    private BusinessStepVo convertToStepVo(StatusbarBusinessStep step) {
++        BusinessStepVo stepVo = new BusinessStepVo();
++        stepVo.setContent(step.getContent());
++        stepVo.setStepOrder(step.getStepOrder());
++        stepVo.setStepTime(step.getStepTime());
++        stepVo.setTitle(step.getTitle());
++        return stepVo;
++    }
++
++    /**
+      * 将MessageCenterResult转换成HistoryTabViewModel对象
+      * 
+      * @param result 消息查询结果{@link MessageCenterResult}
+Index: app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/MessageCenterController.java
+===================================================================
+--- app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/MessageCenterController.java	(revision 2613)
++++ app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/MessageCenterController.java	(revision 2676)
+@@ -4,12 +4,16 @@
+  */
+ package com.alipay.couriercore.web.messager.message;
+ 
++import java.util.ArrayList;
++import java.util.List;
++
+ import net.sf.json.JSONArray;
+ 
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.osgi.context.annotation.OsgiReference;
+ import org.springframework.stereotype.Controller;
+ import org.springframework.ui.ModelMap;
++import org.springframework.util.CollectionUtils;
+ import org.springframework.web.bind.annotation.RequestMapping;
+ import org.springframework.web.bind.annotation.RequestMethod;
+ 
+@@ -19,6 +23,7 @@
+ import com.alipay.couriercore.biz.messager.message.MessageCenterManager;
+ import com.alipay.couriercore.biz.messager.message.enums.MessageVersionEnum;
+ import com.alipay.couriercore.biz.messager.message.enums.PersonalMessageGroupEnum;
++import com.alipay.couriercore.biz.messager.message.enums.RemindStatusEnum;
+ import com.alipay.couriercore.biz.messager.message.request.MessageQueryRequest;
+ import com.alipay.couriercore.biz.messager.message.result.MessageCenterResult;
+ import com.alipay.couriercore.web.home.helper.LogonHelper;
+@@ -28,6 +33,7 @@
+ import com.alipay.couriercore.web.messager.message.converter.MessageConverter;
+ import com.alipay.couriercore.web.messager.message.enums.MessageSendTimeEnum;
+ import com.alipay.sofa.web.mvc.common.util.uribroker.URIBrokerManager;
++import com.alipay.statusbar.common.domain.StatusbarRemindInfo;
+ 
+ /**
+  * 消息中心主页面
+@@ -79,7 +85,7 @@
+     @RequestMapping(value = "/index.htm", method = RequestMethod.GET)
+     public String index(ModelMap modelMap) {
+         if (LogonHelper.isUserLogon()) {
+-            return findNewMsgInfos(modelMap);
++            return findNewMsgInfos(modelMap, null);
+         }
+         return MESSAGE_CENTER_INDEX;
+     }
+@@ -91,11 +97,16 @@
+      * @return 新消息tab页
+      */
+     @RequestMapping(value = "/new.htm", method = RequestMethod.GET)
+-    public String findNewMsgInfos(ModelMap modelMap) {
++    public String findNewMsgInfos(ModelMap modelMap, String pageNo) {
+ 
++        // 1.参数检测,如果pageNo为空，则设置默认值
++        if (StringUtil.isBlank(pageNo)) {
++            pageNo = MessageConstants.DEFAULT_PAGE_NO;
++        }
++
+         // 1.查询新消息列表
+-        MessageCenterResult result = messageCenterManager.findNewMsgInfos(LogonHelper.getUserId(),
+-            MessageVersionEnum.PERSONAL.getCode());
++        MessageCenterResult result = messageCenterManager.queryUserMessagePaging(LogonHelper
++            .getUserId(), Integer.valueOf(pageNo), MessageConstants.PAGE_SIZE);
+ 
+         // 2.处理返回结果
+         if (!result.isSuccess()) {
+@@ -104,16 +115,39 @@
+                 .getCode(), null);
+         }
+ 
+-        // 3.转换json数据给页面
+-        modelMap.addAttribute("totalCount", result.getResult().size());
+-        modelMap.addAttribute("msgGroup", PersonalMessageGroupEnum.getGroupMap());
+-        modelMap.addAttribute("info", messageConverter.converter(result.getResult()));
+-        JSONArray jsonArray = JSONArray.fromObject(modelMap);
+-        modelMap.addAttribute("jsonData", jsonArray.get(0));
++        // 3.更新消息为已读
++        modifyMsgStatusRead(result.getResult());
++
++        modelMap.addAttribute("msgInfoList", messageConverter.converter(result.getResult()));
++        modelMap.addAttribute("pageNo", result.getPageNum());
++        modelMap.addAttribute("pageCount", result.getPageCount());
++
+         return MESSAGE_CENTER_NEW;
+     }
+ 
+     /**
++     * 修改消息状态为已读
++     * 
++     * @param remindList
++     */
++    private void modifyMsgStatusRead(List<StatusbarRemindInfo> remindList) {
++        if (CollectionUtils.isEmpty(remindList)) {
++            return;
++        }
++        List<String> ids = new ArrayList<String>();
++        for (StatusbarRemindInfo remind : remindList) {
++            if (StringUtil.equals(remind.getStatus(), RemindStatusEnum.NEW.getCode())) {
++                ids.add(remind.getId());
++            }
++        }
++
++        if (CollectionUtils.isEmpty(ids)) {
++            return;
++        }
++        messageCenterManager.modifyMsgStatus(LogonHelper.getUserId(), RemindStatusEnum.READ, ids);
++    }
++
++    /**
+      * 消息中心历史消息tab页
+      * 
+      * @param modelMap {@link ModelMap}
+Index: app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/constants/MessageConstants.java
+===================================================================
+--- app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/constants/MessageConstants.java	(revision 2613)
++++ app/web/messager/src/main/java/com/alipay/couriercore/web/messager/message/constants/MessageConstants.java	(revision 2676)
+@@ -13,12 +13,12 @@
+ public class MessageConstants {
+ 
+     /** 每页条数 */
+-    public static final int    PAGE_SIZE       = 15;
++    public static final int    PAGE_SIZE       = 20;
+ 
+     /** 默认当前页 */
+     public static final String DEFAULT_PAGE_NO = "1";
+ 
+     /** 页面上显示的日期格式 */
+-    public static final String WEB_DATE_FORMAT = "yyyy.MM.dd";
++    public static final String WEB_DATE_FORMAT = "yyyy.MM.dd HH:mm";
+ 
+ }
+Index: app/web/messager/src/main/resources/META-INF/spring/web-messager.xml
+===================================================================
+--- app/web/messager/src/main/resources/META-INF/spring/web-messager.xml	(revision 2613)
++++ app/web/messager/src/main/resources/META-INF/spring/web-messager.xml	(revision 2676)
+@@ -23,7 +23,7 @@
+ 	-->
+ 	<bean id="messageSource"
+ 		class="org.springframework.context.support.ReloadableResourceBundleMessageSource"
+-		p:basenames="file:${ui_tpl}/properties/common,file:${ui_template}/properties/global/forms,file:${ui_template}/properties/global/system,file:${prod_ui_template}/config/couriercore"
++		p:basenames="file:${ui_tpl}/properties/common,file:${prod_ui_template}/config/couriercore"
+ 		p:defaultEncoding="GBK" p:cacheSeconds="600" />
+ 
+ 	<!-- 密码加密组件 -->
+Index: app/web/home/src/main/resources/uri-brokers.xml
+===================================================================
+--- app/web/home/src/main/resources/uri-brokers.xml	(revision 2613)
++++ app/web/home/src/main/resources/uri-brokers.xml	(revision 2676)
+@@ -90,7 +90,7 @@
+ 	</content-uri>
+ 	
+ 	<!-- personaportal支付宝地址 -->
+-	<content-uri name="portalServer" expose="true">
++	<content-uri name="personalportalServer" expose="true">
+ 		<serverURI>${personalportal_url}</serverURI>
+       <custom-handler
+          class="com.alipay.sofa.web.mvc.common.util.uribroker.handler.DomainReplaceHandler"
+@@ -189,7 +189,7 @@
+ 	
+ 	<!-- portal的Module配置-->
+ 	<component-uri name="portalModule" expose="true"
+-		extends="portalServer">
++		extends="personalportalServer">
+ 		<contextPath>/</contextPath>
+ 		<controllerActionSuffix>.htm</controllerActionSuffix>
+ 		<convertTargetCaseAndUnderscore>false
+Index: app/test/src/main/java/com/alipay/couriercore/test/util/AliEnumEditor.java
+===================================================================
+--- app/test/src/main/java/com/alipay/couriercore/test/util/AliEnumEditor.java	(revision 2613)
++++ app/test/src/main/java/com/alipay/couriercore/test/util/AliEnumEditor.java	(revision 2676)
+@@ -40,7 +40,7 @@
+      * 
+      * @param enumClazz value to be assigned to property enumClazz
+      */
+-    @SuppressWarnings({ "rawtypes" })
++    @SuppressWarnings("unchecked")
+     public void setEnumClazz(Class enumClazz) {
+         this.enumClazz = enumClazz;
+     }
+Index: app/test/src/main/java/com/alipay/couriercore/test/util/JavaEnumEditor.java
+===================================================================
+--- app/test/src/main/java/com/alipay/couriercore/test/util/JavaEnumEditor.java	(revision 2613)
++++ app/test/src/main/java/com/alipay/couriercore/test/util/JavaEnumEditor.java	(revision 2676)
+@@ -119,7 +119,7 @@
+      * 
+      * @param enumClazz value to be assigned to property enumClazz
+      */
+-    @SuppressWarnings({ "rawtypes" })
++    @SuppressWarnings("unchecked")
+     public void setEnumClazz(Class enumClazz) {
+         this.enumClazz = enumClazz;
+     }
+Index: app/test/src/main/java/com/alipay/couriercore/test/util/OutOrderNoFactoryBean.java
+===================================================================
+--- app/test/src/main/java/com/alipay/couriercore/test/util/OutOrderNoFactoryBean.java	(revision 2613)
++++ app/test/src/main/java/com/alipay/couriercore/test/util/OutOrderNoFactoryBean.java	(revision 2676)
+@@ -31,7 +31,7 @@
+     /**
+      * @see org.springframework.beans.factory.FactoryBean#getObjectType()
+      */
+-    @SuppressWarnings({ "rawtypes" })
++    @SuppressWarnings("unchecked")
+     public Class getObjectType() {
+         return String.class;
+     }
+Index: app/test/src/test/resources/sofa-test-config.properties
+===================================================================
+--- app/test/src/test/resources/sofa-test-config.properties	(revision 2613)
++++ app/test/src/test/resources/sofa-test-config.properties	(revision 2676)
+@@ -16,7 +16,7 @@
+ couriercore_imageServer_host  = img.alipay.net
+ couriercore_imageServer_port  = 80
+ 
+-couriercore_inbound_timer_threshold  = 300
++core_inbound_timer_threshold  = 300
+ 
+ couriercore_loggingLevel  = warn
+ 
+@@ -36,16 +36,16 @@
+ 
+ couriercore_web_port  = 80
+ 
+-dbackprod_service_url  = http://dbackprod.${inner.domain}:8080
++dbackprod_service_url  = http://dbackprod.stable.alipay.net:8080
+ 
+-gotone_service_url  = http://gotone.stable.alipay.net:8080
++gotone_service_url  = http://gotone.d2054.alipay.net:8080
+ 
+-gotone_tr_service_url  = gotone.stable.alipay.net:12200
++gotone_tr_service_url  = gotone.d2054.alipay.net:12200
+ 
+ inner_domain  = stable.alipay.net
+-inner.domain  = stable.alipay.net
+ 
+ kmi_service_url  = http://kmi.stable.alipay.net:8080
++paytask_service_mule_url=http://paytask-pool.stable.alipay.net:80
+ 
+ localcachetair_group      = group_fdb
+ localcachetair_namespace  = 27
+@@ -54,17 +54,19 @@
+ 
+ paytask_service_url  = http://paytask-pool.stable.alipay.net:80
+ 
++csaccurate_tr_service_url = csaccurate.d1857.alipay.net:12200
++
+ run_mode  = 0
+ 
+ mobilecmng_service_url= http://mobilecmng2.d133.alipay.net:8080
+ 
+-securityprod_service_url  = http://securityprod.${inner.domain}:8080
++securityprod_service_url  = http://securityprod.stable.alipay.net:8080
+ 
+-settlequery_service_url  = http://settlequery.${inner.domain}:8080
++settlequery_service_url  = http://settlequery.stable.alipay.net:8080
+ 
+ sofa_concurrent_mule_url  = tcpm://couriercore.${inner.domain}:6200
+ 
+-statusbar_tr_service_url  = statusbar.stable.alipay.net:12200
++statusbar_tr_service_url  = statusbar.d2045.alipay.net:12200
+ 
+ tair_configServerList_master  = tair.stable.alipay.net:5198
+ tair_configServerList_slave   = tair2.stable.alipay.net:5198
+@@ -73,8 +75,8 @@
+ taobao_port    = 80
+ app_name=couriercore
+ 
+-timeout_service_url  = http://timeout.${inner.domain}:8080
++timeout_service_url  = http://timeout.stable.alipay.net:8080
+ 
+-tradequeryprod_service_url  = http://tradequeryprod.${inner.domain}:8080
++tradequeryprod_service_url  = http://tradequeryprod.stable.alipay.net:8080
+ 
+ userview_service_url  = http://userview.stable.alipay.net:8080
+\ No newline at end of file
+Index: app/test/src/test/java/com/alipay/couriercore/test/BaseLocalTest.java
+===================================================================
+--- app/test/src/test/java/com/alipay/couriercore/test/BaseLocalTest.java	(revision 2613)
++++ app/test/src/test/java/com/alipay/couriercore/test/BaseLocalTest.java	(revision 2676)
+@@ -46,6 +46,7 @@
+                 "META-INF/spring/commom-service-integration-opssla.xml",
+                 "META-INF/spring/common-service-integration-statusbar.xml",
+                 "META-INF/spring/common-service-integration-userview.xml",
++                "META-INF/spring/common-service-integration-csaccurate.xml",
+ 
+                 "META-INF/spring/couriercore-event-handler.xml",
+                 "META-INF/spring/couriercore-event-tbnotify.xml", "test-datasource.xml",
+@@ -92,7 +93,7 @@
+                 "commom-service-integration-opssla.xml",
+                 "common-service-integration-statusbar.xml",
+                 "common-service-integration-userview.xml", "courier-mysql-tddl.xml",
+-                "couriercore-dao-tddl-auto.xml", };
++                "couriercore-dao-tddl-auto.xml", "common-service-integration-csaccurate.xml" };
+ 
+     }
+ 
+Index: app/test/src/test/java/com/alipay/couriercore/test/util/EventConstructUtil.java
+===================================================================
+--- app/test/src/test/java/com/alipay/couriercore/test/util/EventConstructUtil.java	(revision 2613)
++++ app/test/src/test/java/com/alipay/couriercore/test/util/EventConstructUtil.java	(revision 2676)
+@@ -29,15 +29,15 @@
+         receipt.setBizIdentity("DB-01-001");
+         receipt.setOutBizNo("2011120615192205");
+         Map<String, String> contextMap = new HashMap<String, String>();
+-        contextMap.put("userId", "2088102012099115");
++        contextMap.put("userId", "2088102114147058 ");
+         contextMap.put("bizUniqueNo", "test");
+         contextMap.put("payAmount", "100.00");
+         contextMap.put("isVisa", "Y");
+         contextMap.put("status", "SUCCESS");
+-        contextMap.put("depositInstructionId", "2222554551221445");
++        contextMap.put("depositInstructionId", "201308270000000000013729744204");
+         contextMap.put("INST_NAME", "工商银行");
+         contextMap.put("payChannelApi", "cmb311");
+-        contextMap.put("depositId", "2010021000856960");
++        contextMap.put("depositId", "2013082789328442");
+         receipt.setPayContext(contextMap);
+         event.setEventPayload(receipt);
+         return event;
+@@ -52,7 +52,7 @@
+         Receipt receipt = new Receipt();
+         receipt.setOutBizNo("2011120615192205");
+         Map<String, String> contextMap = new HashMap<String, String>();
+-        contextMap.put("userId", "2088102012099115");
++        contextMap.put("userId", "2088102114147058");
+         contextMap.put("bizUniqueNo", "test");
+         contextMap.put("payAmount", "100.00");
+         contextMap.put("isVisa", "Y");
+@@ -74,7 +74,7 @@
+         Receipt receipt = new Receipt();
+         receipt.setOutBizNo("2011120615192205");
+         Map<String, String> contextMap = new HashMap<String, String>();
+-        contextMap.put("userId", "2088102012099115");
++        contextMap.put("userId", "2088102114147058");
+         contextMap.put("bizUniqueNo", "test");
+         contextMap.put("payAmount", "100.00");
+         contextMap.put("isVisa", "Y");
+@@ -96,13 +96,15 @@
+         receipt.setBizIdentity("DB-01-001");
+         receipt.setOutBizNo("2011120615192205");
+         Map<String, String> contextMap = new HashMap<String, String>();
+-        contextMap.put("userId", "2088102012099115");
++        contextMap.put("userId", "2088102008933426");
+         contextMap.put("bizUniqueNo", "test");
+         contextMap.put("payAmount", "100.00");
+         contextMap.put("isVisa", "Y");
+         contextMap.put("depositInstructionId", "2222554551221445");
+         contextMap.put("INST_NAME", "工商银行");
+         contextMap.put("depositId", "2010021000856960");
++        contextMap.put("bizUniqueNo", "329843");
++        contextMap.put("payChannelApi", "abc101");
+         receipt.setPayContext(contextMap);
+         event.setEventPayload(receipt);
+         return event;
+Index: app/test/src/test/java/com/alipay/couriercore/test/event/PaycoreEventTest.java
+===================================================================
+--- app/test/src/test/java/com/alipay/couriercore/test/event/PaycoreEventTest.java	(revision 2613)
++++ app/test/src/test/java/com/alipay/couriercore/test/event/PaycoreEventTest.java	(revision 2676)
+@@ -40,7 +40,7 @@
+ 
+         //交易充退申请
+         couriercoreEventListener.onUniformEvent(EventConstructUtil.constructDbackTradeApply(),
+-         new UniformEventContext());
++            new UniformEventContext());
+ 
+     }
+ 
+Index: htdocs/templates/messager/screen/msgcenter/history.vm
+===================================================================
+--- htdocs/templates/messager/screen/msgcenter/history.vm	(revision 2613)
++++ htdocs/templates/messager/screen/msgcenter/history.vm	(revision 2676)
+@@ -4,7 +4,8 @@
+ * date 2011.08.26
+ *#
+ 
+-#set($menu="s1_message_history")
++## 注意，修改menu的同事需要修改config.xml
++#set($menu="s1_myaccount_message")
+ <div id="content" class="fix990">
+   #parse("/component/navSide.vm")
+ 	<div id="account-main">
+Index: htdocs/templates/messager/screen/msgcenter/new.vm
+===================================================================
+--- htdocs/templates/messager/screen/msgcenter/new.vm	(revision 2613)
++++ htdocs/templates/messager/screen/msgcenter/new.vm	(revision 2676)
+@@ -4,32 +4,127 @@
+ * date 2011.08.17
+ *#
+ 
+-#set($menu="s1_message_new")
++## 注意，修改menu的同事需要修改config.xml
++#set($menu="s1_myaccount_message")
+ <div id="content" class="fix990" coor="default" coor-rate="0.15">
+   #parse("/component/navSide.vm")
+ 	<div id="account-main">
+ 	<div id="main" class="fixaside" coor="content">
+ 		<div id="msg-title" class="fn-clear title title-line" coor="title">
+-			<h2 class="fn-left">新消息</h2>
+-			<div class="fn-left msg-index-info">我们将推送给您与您的账户相关的新提醒、新服务、帮助等。</div>				
++			<div class="fn-right msg-index-info">
++				<a href="$couriercoreServer.getURI('/messager/setting/index.htm')" title="消息提醒设置">消息提醒设置</a>
++			</div>
++			<h2 class="fn-left">消息中心</h2>
+ 		</div>
+-		<div class="c-tab c-tab-1" coor="newMsg">
+-			<div class="group-bar fn-clear">
+-				<div id="J-group-bar" class="fn-left">
+-					
+-				</div>
+-				<div class="fn-right">
+-					<a id="J-mark-all" seed="mc-newMsg-readAll" href="javascript:;" rel-level="3">全知道了</a>
+-				</div>
++		<div class="c-tab c-tab-1 message-wrap alipay-message-panel-1_0_0#*这个类根据message-panel引用版本定*#" coor="newMsg">
++			<div id="msgList" class="message-panel-list">
++				<table width="100%">
++	                <tbody>
++	                #if($msgInfoList.size()==0)
++	                <tr class="message-list-none">
++                        <td height="200" align="center">
++                           <img src="https://i.alipayobjects.com/e/201308/10h357LQrl.png" alt="没有新消息" align="absmiddle"> &nbsp;&nbsp;&nbsp; 没有发现新消息！
++                        </td>
++                    </tr>
++	                #end
++					#foreach($msg in $msgInfoList)
++	                    #if($msg.appearance==1)
++	                    ## 进度条消息
++	                    <tr id="J-msg-delete-${msg.id}" class="#if($!stringUtil.equals("$!{msg.status}", "2")) message-status-deleted#end">
++	                        <td class="message-panel-item-title">
++	                            <h4>$!{msg.title}</h4>
++	                            <p data-content="#SHTML($!{msg.content})"></p>
++	                        </td>
++	                        <td>
++	                            <div class="message-panel-item-content">
++	                                #if($msg.url)
++	                                <a href="$!{msg.url}" data-delete="$!msg.deleteOnClick" data-id="$!{msg.id}" data-status="$!{msg.status}" class="message-panel-detail" target="_blank">详情</a>
++	                                #end
++	                                #if(!$msg.isCorrect())
++	                                #set($failIndex=${msg.currentStep} - 1)
++	                                #set($failStep=$msg.stepList.get($failIndex))
++	                                <div class="ui-poptip ui-poptip-yellow fn-hide">
++	                                    <div class="ui-poptip-shadow">
++	                                        <div class="ui-poptip-container">
++	                                            <div class="ui-poptip-arrow ui-poptip-arrow-5" data-role="arrow">
++	                                                <em></em>
++	                                                <span></span>
++	                                            </div>
++	                                            <div class="ui-poptip-box ui-poptip-box-text" data-role="content">
++	                                                <div class="ui-poptip-text J-message-item-fail-content" data-role="text"></div>
++	                                            </div>
++	                                        </div>
++	                                    </div>
++	                                </div>
++	                                <div class="message-step-fail-placeholder J-message-item-fail-content fn-hide"></div>
++	                                #end
++	                                <div class="message-step fn-clear">
++	                                    #foreach($step in $msg.stepList)
++	                                    <div class="message-step-item message-step-$!{msg.stepList.size()} #if($velocityCount==1) message-step-first#end #if($step.stepOrder<$msg.currentStep) message-step-done#end #if($step.stepOrder==$msg.currentStep&&$msg.isCorrect()==false) message-step-fail#end #if($step.stepOrder==$msg.currentStep) message-step-current#end" data-content="$!step.content">
++	                                        <div class="message-step-point">&#9679;</div>
++	                                        <div class="message-step-desc">
++	                                            <span class="message-step-title">$!step.title</span>
++	                                            <span class="message-step-date">$!step.stepTime</span>
++	                                        </div>
++	                                    </div>
++	                                    #end
++	                                </div>
++	                            </div>
++	                        </td>
++	                    </tr>
++	                    #elseif($stringUtil.isNotBlank($msg.content))
++	                    ## 文案类消息
++	                    <tr id="J-msg-delete-$!{msg.id}" class="#if($!stringUtil.equals("$!{msg.status}", "2")) message-status-deleted#end">
++	                        <td class="message-panel-item-title">
++	                            <h4>$!{msg.title}</h4>
++	                        </td>
++	                        <td>
++	                            <div class="message-panel-item-content#if($msg.priority==9) ui-msgpael-warn#end">
++	                                #if($msg.url)
++	                                <a href="$!msg.url" data-delete="$!msg.deleteOnClick" data-id="$!{msg.id}" data-status="$!{msg.status}" target="_blank">$!{msg.content}</a>
++	                                #else
++	                                <span>$!{msg.content}</span>
++	                                #end
++	                            </div>
++	                        </td>
++	                    </tr>
++						#end
++					#end
++	                </tbody>
++	            </table>
+ 			</div>
+-			<div id="msgList" class="msg-list msg-list-big">
+-				<div class="msg-loading">
+-					<img src=$imageServer.getURI("/sys/msgcenter/load.gif") height="40" width="40" alt="正在加载消息" /> 
++			<div class="message-page fn-clear">
++				#if($pageCount>1)
++				<div class="ui-paging fn-right">
++					##set($pageNo=5)
++					##set($pageCount=14)
++					#set($prevPageNo=${pageNo} - 1)
++					#if($prevPageNo>0)
++				    <a href="$!couriercoreServer.getURI('/messager/new.htm')?pageNo=$!prevPageNo" class="ui-paging-prev">
++				        <i class="iconfont" title="左三角形">&#xF039;</i> 上一页
++				    </a>
++				    #end
++
++				    #set($iLeft=${pageNo} - 3)
++				    #set($iRight=${pageNo} + 3)
++				    #foreach($i in [1..$pageCount])
++				    ## 在 $iLeft 和 $iRight 之间的值才输出
++				    #if(($i>$iLeft&&$i<$iRight)||$i==1||$i==$pageCount)
++				    <a href="$!couriercoreServer.getURI('/messager/new.htm')?pageNo=$!i" class="ui-paging-item#if($!stringUtil.equals("$i", "$!pageNo")) ui-paging-current#end">$!i</a>
++				    #elseif($i==$iLeft||$i==$iRight)
++				    <span class="ui-paging-ellipsis">...</span>
++				    #end
++				    #end
++
++					#set($nextPageNo=${pageNo} + 1)
++					#if($nextPageNo<$pageCount)
++				    <a href="$!couriercoreServer.getURI('/messager/new.htm')?pageNo=$!nextPageNo" class="ui-paging-next">
++				        下一页 <i class="iconfont" title="右三角形">&#xF03A;</i>
++				    </a>
++				    #end
+ 				</div>
+-			</div>
+-			<div id="pageBar" class="page page-nobg">
+-			
+-			</div>
++				#end
++	        </div>
+ 		</div>
+ 		<div coor="pageFaq">
+ 		<!--常见问题-->
+@@ -41,5 +136,5 @@
+ </div>
+ <div id="cfBox"></div>
+ 
+-#set($jsondata=${jsonData})
++##set($jsondata=${jsonData})
+ #cmsparse("alipay/tracker/heat_tracker.vm")
+Index: htdocs/templates/messager/screen/setting/index.vm
+===================================================================
+--- htdocs/templates/messager/screen/setting/index.vm	(revision 2613)
++++ htdocs/templates/messager/screen/setting/index.vm	(revision 2676)
+@@ -1,4 +1,5 @@
+-#set($menu="s1_message_message")
++## 注意，修改menu的同事需要修改config.xml
++#set($menu="s1_myaccount_message")
+ #set($ww = $!request.getParameter('ww'))
+ <div id="content" class="fix990">
+   #parse("/component/navSide.vm")
+Index: htdocs/templates/messager/screen/enterprise/history.vm
+===================================================================
+--- htdocs/templates/messager/screen/enterprise/history.vm	(revision 2613)
++++ htdocs/templates/messager/screen/enterprise/history.vm	(revision 2676)
+@@ -11,7 +11,7 @@
+       <a href="$!uemprodServer.getURI("/user/ihome.htm")">
+         <span class="alt">支付宝</span>
+       </a>
+-      <span class="title">历史消息</span>
++      <span class="title">消息</span>
+     </h1>
+   </div>
+ </div>
+Index: htdocs/templates/messager/screen/enterprise/index.vm
+===================================================================
+--- htdocs/templates/messager/screen/enterprise/index.vm	(revision 2613)
++++ htdocs/templates/messager/screen/enterprise/index.vm	(revision 2676)
+@@ -11,7 +11,7 @@
+       <a href="$!uemprodServer.getURI("/user/ihome.htm")">
+         <span class="alt">支付宝</span>
+       </a>
+-      <span class="title">消息中心</span>
++      <span class="title">消息</span>
+     </h1>
+   </div>
+ </div>
+Index: htdocs/uisvr/config/js.vm
+===================================================================
+--- htdocs/uisvr/config/js.vm	(revision 2613)
++++ htdocs/uisvr/config/js.vm	(revision 2676)
+@@ -18,7 +18,7 @@
+ "js_pa_reg"								:	"build/js/pa/reg.js?t=xxx"												,
+ "js_araleCore"							:	"ar/arale.core-1.1.js"													,
+ "js_heattracker"						: 	"ar/system.heatmap.heattracker-1.1.js"									,
+-"js_alipay_msgcenter"					:	"ar/alipay.msgcenter-1.2$!{src}.js"							,
++"js_alipay_msgcenter"					:	"ar/alipay.msgcenter-1.3$!{src}.js"							,
+ "js_cancellation"						:	"memberprod/memberprod.cancellation-1.0$!{src}.js"			,
+ "js_global"								:	"globalprod/globalprod.global-1.0$!{src}.js"				,
+ "js_memberprod_reg"						:	"memberprod/memberprod.reg-1.2$!{src}.js"					,
+Index: htdocs/uisvr/messager/config.xml
+===================================================================
+--- htdocs/uisvr/messager/config.xml	(revision 2613)
++++ htdocs/uisvr/messager/config.xml	(revision 2676)
+@@ -16,48 +16,54 @@
+       </vars>
+   </page>
+ 
+-  <page path="/messager/channel/manage.vm" head="/public/common/global" foot="/public/common/global">
++  <page path="/messager/channel/manage.vm" head="public/common/uninav" foot="public/common/uninav">
+   	<vars>
+ 		<title>提醒消息定制 - 支付宝</title>
+-		<menu>s1_message</menu>
++		<menu>s1_myaccount_message</menu>
++    <globalNavType>global</globalNavType>
+ 	</vars>
+   </page>
+ 
+-  <page path="/messager/channel/modifyEmail/activate.vm" head="/public/common/global" foot="/public/common/global">
++  <page path="/messager/channel/modifyEmail/activate.vm" head="public/common/uninav" foot="public/common/uninav">
+   	<vars>
+ 		<title>提醒消息定制 - 支付宝</title>
+-		<menu>s1_message</menu>
++		<menu>s1_myaccount_message</menu>
++    <globalNavType>global</globalNavType>
+ 	</vars>
+   </page>
+ 
+-  <page path="/messager/channel/modifyEmail/emailModifyError.vm" head="/public/common/global" foot="/public/common/global">
++  <page path="/messager/channel/modifyEmail/emailModifyError.vm" head="public/common/uninav" foot="public/common/uninav">
+   	<vars>
+ 		<title>提醒消息定制 - 支付宝</title>
+-		<menu>s1_message</menu>
++		<menu>s1_myaccount_message</menu>
++    <globalNavType>global</globalNavType>
+ 	</vars>
+   </page>
+ 
+-  <page path="/messager/channel/modifyEmail/modifyEmailSuccess.vm" head="/public/common/global" foot="/public/common/global">
++  <page path="/messager/channel/modifyEmail/modifyEmailSuccess.vm" head="public/common/uninav" foot="public/common/uninav">
+   	<vars>
+ 		<title>提醒消息定制 - 支付宝</title>
+-		<menu>s1_message</menu>
++		<menu>s1_myaccount_message</menu>
++    <globalNavType>global</globalNavType>
+ 	</vars>
+   </page>
+   
+-  <page path="/messager/channel/modifyEmail/modify.vm" head="/public/common/global" foot="/public/common/global">
++  <page path="/messager/channel/modifyEmail/modify.vm" head="public/common/uninav" foot="public/common/uninav">
+       <css>
+          <ref path="$css_security_core" />
+       </css>
+       <vars>
+         <title>提醒渠道设置</title>
+-        <menu>s1_message</menu>
++        <menu>s1_myaccount_message</menu>
++        <globalNavType>global</globalNavType>
+       </vars>
+   </page>
+ 
+-  <page path="/messager/channel/modifyEmail/noActivate.vm" head="/public/common/global" foot="/public/common/global">
++  <page path="/messager/channel/modifyEmail/noActivate.vm" head="public/common/uninav" foot="public/common/uninav">
+   	<vars>
+ 		<title>提醒消息定制 - 支付宝</title>
+-		<menu>s1_message</menu>
++		<menu>s1_myaccount_message</menu>
++    <globalNavType>global</globalNavType>
+ 	</vars>
+   </page>
+ 
+@@ -68,7 +74,7 @@
+       </vars>
+   </page>
+ 
+-  <page path="/messager/msgcenter/history.vm" head="/public/common/global" foot="/public/common/global">
++  <page path="/messager/msgcenter/history.vm" head="public/common/uninav" foot="public/common/uninav">
+       <css>
+          <ref path="$css_system_msgcenter" />
+       </css>
+@@ -77,12 +83,13 @@
+       </js>
+       <vars>
+         <title>历史消息 - 支付宝</title>
+-        <menu>s1_message</menu>
+-		<newArale>true</newArale>
++        <menu>s1_myaccount_message</menu>
++    		<newArale>true</newArale>
++        <globalNavType>global</globalNavType>
+       </vars>
+   </page>
+ 
+-  <page path="/messager/msgcenter/index.vm" head="/public/common/singleTask" foot="/public/common/singleTask">
++  <page path="/messager/msgcenter/index.vm" head="public/common/uninav" foot="public/common/uninav">
+       <css>
+          <ref path="$css_system_msgcenter" />
+       </css>
+@@ -91,11 +98,12 @@
+       </js>
+       <vars>
+         <title>消息中心</title>
+-		<newArale>true</newArale>
++    		<newArale>true</newArale>
++        <globalNavType>singleTask</globalNavType>
+       </vars>
+   </page>
+ 
+-  <page path="/messager/msgcenter/new.vm" head="/public/common/global" foot="/public/common/global">
++  <page path="/messager/msgcenter/new.vm" head="public/common/uninav" foot="public/common/uninav">
+       <css>
+          <ref path="$css_system_msgcenter" />
+       </css>
+@@ -103,58 +111,67 @@
+          <ref path="$js_alipay_msgcenter" />
+       </js>
+       <vars>
+-        <title>新消息 - 支付宝</title>
+-        <menu>s1_message</menu>
+-		<newArale>true</newArale>
++        <title>消息中心 - 支付宝</title>
++        <menu>s1_myaccount_message</menu>
++        <globalNavType>global</globalNavType>
++        <msgHide>false</msgHide>
++    		<newArale>true</newArale>
+       </vars>
+   </page>
+ 
+-  <page path="/messager/setting/end.vm" head="/public/common/global" foot="/public/common/global">
++  <page path="/messager/setting/end.vm" head="public/common/uninav" foot="public/common/uninav">
+   	<vars>
+ 		<title>提醒消息定制 - 支付宝</title>
+-		<menu>s1_message</menu>
++		<menu>s1_myaccount_message</menu>
++    <globalNavType>global</globalNavType>
+ 	</vars>
+   </page>
+ 
+-  <page path="/messager/setting/indexError.vm" head="/public/common/global" foot="/public/common/global">
++  <page path="/messager/setting/indexError.vm" head="public/common/uninav" foot="public/common/uninav">
+   	<vars>
+ 		<title>提醒消息定制 - 支付宝</title>
+-		<menu>s1_message</menu>
++		<menu>s1_myaccount_message</menu>
++    <globalNavType>global</globalNavType>
+ 	</vars>
+   </page>
+ 
+-  <page path="/messager/setting/index.vm" head="/public/common/global" foot="/public/common/global">
++  <page path="/messager/setting/index.vm" head="public/common/uninav" foot="public/common/uninav">
+   	<vars>
+ 		<title>提醒消息定制 - 支付宝</title>
+-		<menu>s1_message</menu>
++		<menu>s1_myaccount_message</menu>
++    <globalNavType>global</globalNavType>
+ 	</vars>
+   </page>
+ 
+-	<page path="/messager/setting/emailUnsubscribe.vm" head="/public/common/global" foot="/public/common/global">
++	<page path="/messager/setting/emailUnsubscribe.vm" head="public/common/uninav" foot="public/common/uninav">
+      <vars>
+       <title>退订邮件 - 支付宝</title>
+-      <menu>s1_message</menu>
++      <menu>s1_myaccount_message</menu>
++      <globalNavType>global</globalNavType>
+    </vars>
+   </page>
+   
+-  <page path="/messager/setting/unsubscribeSucc.vm" head="/public/common/global" foot="/public/common/global">
++  <page path="/messager/setting/unsubscribeSucc.vm" head="public/common/uninav" foot="public/common/uninav">
+      <vars>
+       <title>退订邮件 - 支付宝</title>
+-      <menu>s1_message</menu>
++      <menu>s1_myaccount_message</menu>
++      <globalNavType>global</globalNavType>
+    </vars>
+   </page>
+   
+-  <page path="/messager/setting/unsubscribeFail.vm" head="/public/common/global" foot="/public/common/global">
++  <page path="/messager/setting/unsubscribeFail.vm" head="public/common/uninav" foot="public/common/uninav">
+      <vars>
+       <title>退订邮件 - 支付宝</title>
+-      <menu>s1_message</menu>
++      <menu>s1_myaccount_message</menu>
++      <globalNavType>global</globalNavType>
+    </vars>
+   </page>
+   
+-  <page path="/messager/setting/unsubscribeFailmobile.vm" head="/public/common/global" foot="/public/common/global">
++  <page path="/messager/setting/unsubscribeFailmobile.vm" head="public/common/uninav" foot="public/common/uninav">
+      <vars>
+       <title>退订邮件 - 支付宝</title>
+-      <menu>s1_message</menu>
++      <menu>s1_myaccount_message</menu>
++      <globalNavType>global</globalNavType>
+    </vars>
+   </page>
+ 
+Index: htdocs/uisvr/messager/msgcenter/new.css
+===================================================================
+--- htdocs/uisvr/messager/msgcenter/new.css	(revision 2613)
++++ htdocs/uisvr/messager/msgcenter/new.css	(revision 2676)
+@@ -43,4 +43,30 @@
+ 	width:760px;	
+ }
+ #main .title-line{padding-bottom:7px;}
++
++
++/** new **/
++.message-wrap {
++	padding-top: 10px;
++	line-height: 18px;
++}
++.message-page {
++	padding-top: 20px;
++}
++.message-wrap .message-status-deleted td, 
++.message-wrap .message-status-deleted td.message-panel-item-title h4, 
++.message-wrap .message-status-deleted td a{
++	color: #969694;
++}
++#main .message-wrap .message-panel-list {
++	max-height: none;
++	height: auto;
++	overflow: auto;
++}
++.message-list-none {
++	font-size: 14px;
++}
++#main .message-list-none {
++	background: none;
++}
+ </style>
+Index: htdocs/uisvr/messager/msgcenter/new.js
+===================================================================
+--- htdocs/uisvr/messager/msgcenter/new.js	(revision 2613)
++++ htdocs/uisvr/messager/msgcenter/new.js	(revision 2676)
+@@ -1,217 +1,47 @@
+ <script type="text/javascript">
+-/**
+-* 初始化数据
+-*/
+-var personalServer = "${personalServer}";
+-if (typeof window.cache == "undefined") {
+-	window.cache = {};
+-}
+-window.cache.msglist = ${jsondata};
+-window.cache.msglist.groupCount={
+-	ALL : 0
+-}
++seajs.use(["$", "alipay/message-panel/1.0.0/message-panel", "alice/paging/1.0.1/paging.css"], function ($, MessagePanel) {
++	var allowTag = ["br", "a"];
+ 
++	$(function () {
++		// 列表 hover 效果
++		$(".message-panel-list tr").on("mouseover", function (ev) {
++			$(ev.currentTarget).addClass("message-panel-item-hover");
++		}).on("mouseout", function (ev) {
++			$(ev.currentTarget).removeClass("message-panel-item-hover");
++		});
+ 
+-/**
+- * 按过滤条件过滤出数据，生面页面、分类条
+- */
+-var buildPage = function(data, group, pageNum) {
+-	var group = group || "ALL";
+-	var pageNum = pageNum || 1;
+-	var numberOfpage = numberOfpage || 15;
+-	var msgList = $("msgList");
+-	var oldHeight = msgList.node.offsetHeight;
+-	msgList.setStyle("height", oldHeight);
+-	var currentGroupData = system.msgctr.datafilter(data.info, group);
+-	//生成页面
+-	$("msgList").node.innerHTML = system.msgctr.createPage({
+-		data : currentGroupData,
+-		buildPageFunc : system.msgctr.comm.createMsgList,
+-		contentId : "msgList",
+-		pageNum : pageNum
+-	});
++		// 渲染 failTip
++		$(".message-step-fail", $(".message-panel-list")).each(function (i, el) {
++			var content = MessagePanel.tagFilter($(el).data("content"), allowTag);
++			if (!content) {
++				return;
++			}
++			##// var content = MessagePanel.tagFilter("失败提示：测试失败提示，这是一个测试<br/>很长。。很长。。很长。。很长。。很长。。很长。。很长。。很长。。很长。。很长。。很长。。很长。。很长。。很长。。很长。。很长。。很长。。很长。。很长。。很长。。", allowTag);
++			$(".ui-poptip", $(el).parent().parent()).removeClass("fn-hide"); 
++			$(".J-message-item-fail-content", $(el).parent().parent()).removeClass("fn-hide");
++			$(".J-message-item-fail-content", $(el).parent().parent()).html(content);
++		});
++		// 矫正 failTip
++		MessagePanel.adjustFailTip(".message-panel-list");
+ 
+-	//全知道了的显示状态
+-    var allCanDeleted = false;
+-    A(currentGroupData).each(function(item){
+-        if(item.canDeleted) {
+-            allCanDeleted = true;
+-            return;
+-        }
+-    });
+-	if (allCanDeleted) {
+-		$("J-mark-all").removeClass("fn-hide");
+-	} else {
+-		$("J-mark-all").addClass("fn-hide");
+-	}
+-
+-	var singleLineHeight = $$("#msgList .msg")[0].node.offsetHeight;
+-	if (currentGroupData.length > numberOfpage && pageNum != 1 ) {
+-		//多页且未页
+-		var newHeight = singleLineHeight * (currentGroupData.length - ((pageNum - 1) * numberOfpage));
+-	} else if ( currentGroupData.length > numberOfpage && pageNum == 1 ) {
+-		//多页非末页
+-		var newHeight = singleLineHeight * numberOfpage;
+-	} else {
+-		//单页
+-		var newHeight = singleLineHeight * Math.max(currentGroupData.length, 1);
+-	}
+-
+-	var t = 300;
+-	Loader.use("arale.fx",function(){
+-		var anim = new Animator({
+-			duration: t, 
+-			interval: 2
++		// 过滤content中的特殊字符
++		$(".message-panel-item-title p").each(function (i, e) {
++			$(e).html(MessagePanel.tagFilter($(e).data("content"), allowTag));
+ 		});
+-		anim.addMotion(msgList, "height", oldHeight, newHeight);
+-		anim.play();
+-	});
+ 
+-	//生成分类
+-	$("J-group-bar").node.innerHTML = system.msgctr.comm.createGroupList(data, group);
+-}
+-
+-/**
+-* 绑定在分类列表上的过滤事件
+-*/
+-var bindGroupEvent = function(id){
+-	E.connect($$("#" + id), "click", function(e) {
+-		var target = e.target;
+-		if (target.tagName.toUpperCase() == "A"){
+-			var group = $(target).attr("rel-group") || "ALL";
+-			buildPage(window.cache.msglist, group, 1);
+-		}
+-	});
+-};
+-
+-
+-
+-
+-var whichConfirm = 0;  //确定是点"全知道了"还是"知道了"
+-
+-E.domReady(function(){
+-	buildPage(window.cache.msglist);
+-	bindGroupEvent("J-group-bar");
+-	system.msgctr.comm.showIKnow("msgList");
+-	/**
+-	* 点击“我知道了”
+-	*/
+-	E.subscribe('system/msgctr/clickIKnow/updateComplete',function(){
+-		var msgGroup = $$("#J-group-bar .current")[0].attr("rel-group");
+-		buildPage(window.cache.msglist, msgGroup);
+-	});
+-	new system.msgctr.comm.clickIKnow("msgList", window.cache.msglist.info);
+-
+-	//绑定翻页事件
+-	E.connect("pageBar" , "click", function(e) {
+-		var target = e.target;
+-		if (!$(target).hasClass("J-page")) {return false;}
+-		//每次点击翻页时，重新生成页面的数据
+-		buildPage(window.cache.msglist, $$('#J-group-bar .current')[0].attr("rel-group"), $(target).attr("rel-page"));
+-	});
+-
+-	//全知道了
+-	E.connect("J-mark-all", "click", function(e){
+-		var target = e.target;
+-		e.preventDefault();
+-		whichConfirm = 1;
+-		Loader.use('aralex.confirmbox', function(){
+-			var reRegion = Node(target).region();
+-			var cfbox = new aralex.confirmbox.ConfirmBox({
+-				srcId : "cfBox",
+-				onConfirm: function() {
+-					var currentGroup = $$("#J-group-bar .current")[0].attr("rel-group");
+-					var id = [];
+-					for (var i = 0, l = window.cache.msglist.info.length - 1; i <= l; i++) {
+-						if ( window.cache.msglist.info[i].canDeleted &&
+-                            (currentGroup == "ALL" ||
+-                            currentGroup == window.cache.msglist.info[i].msgGroup)) {
+-							id.push(window.cache.msglist.info[i].id);
+-						}
+-					}
+-					system.msgctr.comm.markAsRead(id.join(","), window.cache.msglist.info);
+-					buildPage(window.cache.msglist, currentGroup, 1);
+-					whichConfirm = 0;
++		// 修改为已处理
++		$(".message-panel-item-content a").on("click", function (ev) {
++			$(ev.currentTarget).data("delete")&&($(ev.currentTarget).data("status")!=2)&&jQuery.ajax({
++				url : "$couriercoreServer.getURI('/messager/modifyMsgStatus.json')",
++				data : {
++					status : "2",
++					ids : $(ev.currentTarget).data("id")
+ 				},
+-				beforeShow : function(){					
+-					var uiD  =$$(".ui-dialog-arrow");
+-					if(uiD.length > 0) uiD[0].dispose();
+-					var len = $$(".ui-dialog-arrow1").length;
+-					if(len == 0){
+-						var ele = document.createElement("div");
+-						ele.className="ui-dialog-arrow1";
+-						$("cfBox_aralex_confirmbox_tmpl").node.appendChild(ele);
+-					}else{
+-						$$(".ui-dialog-arrow1")[0].removeClass("fn-hide");							
+-					}
+-				},
+-				data: {
+-					message:"<div class='msg-confirm'>确定要全部消息标记为已读吗？<div>",
+-					confirmText:"确 定",
+-					cancelText:"取 消"
++				success : function (rsp) {
++					// did
+ 				}
+-			});	
+-			$("cfBox").setStyle('left', reRegion.left - 122 +"px");
+-			$("cfBox").setStyle('top',  reRegion.top + 30 + "px");
+-			cfbox.show();
++			});
+ 		});
+ 	});
+-
+-	//点击让confirmbox消失
+-	
+-	E.connect($$("body"),"click",function(e){
+-		var cfBox= $("cfBox");
+-		if(typeof cfBox == "undefined" || cfBox.getHtml() == "") return false;
+-		var target = e.target;
+-		if(target.id == "J-mark-all" || target.className == "iknow") return false;
+-		while(target.parentNode ) {	
+-			if ( target.parentNode.id == "cfBox" ) return false;
+-			target = target.parentNode;
+-		}
+-		cfBox.dispose();
+-		var cfdiv = document.createElement("div");
+-		cfdiv.id = "cfBox";
+-		document.getElementById("container").appendChild(cfdiv);
+-	})
+-
+-	//动态绑定seed
+-	E.connect($$(".c-tab-1"),"onclick",function(e){
+-		var target = e.target ;
+-		if(typeof target =="undefined") return false ;
+-		var group = target.getAttribute("rel-group");
+-		switch(group){
+-			case "All": Tracker.click("mc-newMsg-allMsg");break;
+-			case "ACCOUNT_SECURITY":Tracker.click("mc-newMsg-accSecurity");break;
+-			case "CONSUME_REMIND":Tracker.click("mc-newMsg-consumptionRemind");break;
+-			case "MEMBER_SERVICE":Tracker.click("mc-newMsg-memberService");break;
+-			case "ACCOUNT_UP":Tracker.click("mc-newMsg-accGrowth");break;
+-		}
+-		var className = target.className;
+-		if($(target).hasClass("ui-btn-text")) className = target.parent.className;
+-		switch(className){
+-			case "text-info": Tracker.click("mc-newMsg-msg");break;
+-			case "ui-btn ui-btn-ok-mini" : Tracker.click((whichConfirm == 1) ? "mc-newMsg-readAll-yes" : "mc-newMsg-flyout-yes");break;
+-			case "ui-btn ui-btn-cancel-mini": Tracker.click((whichConfirm == 1) ? "mc-newMsg-readAll-no" :"mc-newMsg-flyout-no");break;
+-			case "iknow": Tracker.click("mc-newMsg-read");break;
+-			(whichConfirm == 1) ? Tracker.click("mc-newMsg-read") : Tracker.click("mc-newMsg-read");
+-		}
+-	});
+-	//自动滚动到标题处
+-	function  scrollToTitle(){
+-		var _viewHeight = D.getViewportHeight();
+-		var _conHeight = D.getDocumentHeight($("container"));
+-		var _scrollTop = D.getPosition($("content"));
+-
+-		if(_conHeight < _viewHeight + _scrollTop){
+-			$("container").style.height = _viewHeight + _scrollTop + "px";
+-		}
+-		window.scroll(0,_scrollTop);
+-	}
+-	//自动回到顶部
+-	E.connect($$(".J-scroll-to-top"),"click",function(e){
+-		scrollToTitle();
+-		e.preventDefault();
+-	});
+-
+ });
+ </script>
+Index: htdocs/uisvr/messager/enterprise/history.css
+===================================================================
+--- htdocs/uisvr/messager/enterprise/history.css	(revision 2613)
++++ htdocs/uisvr/messager/enterprise/history.css	(revision 2676)
+@@ -18,7 +18,7 @@
+ }
+ .msg-list .msg{
+ 	height:29px;
+-	padding: 11px 10px;
++	padding: 11px 20px;
+ }
+ .msg-list .msg .msg-text {
+ 	width: 585px;
+@@ -34,6 +34,7 @@
+ .msg-list .msg-empty{
+ 	line-height: 28px;
+ 	height: 28px;
++  padding: 11px 20px;
+ }
+ .c-tab .page{border-bottom:1px solid #E2E2E2;}
+ #main .group-bar{border-top:1px solid #DDDDDD;}
+Index: htdocs/uisvr/messager/enterprise/index.css
+===================================================================
+--- htdocs/uisvr/messager/enterprise/index.css	(revision 2613)
++++ htdocs/uisvr/messager/enterprise/index.css	(revision 2676)
+@@ -18,7 +18,7 @@
+ }
+ .msg-list .msg{
+ 	height:29px;
+-	padding: 11px 10px;
++	padding: 11px 20px;
+ }
+ .msg-list .msg .msg-text {
+ 	width: 585px;
+Index: htdocs/uisvr/home/config.xml
+===================================================================
+--- htdocs/uisvr/home/config.xml	(revision 2613)
++++ htdocs/uisvr/home/config.xml	(revision 2676)
+@@ -1,11 +1,12 @@
+ <?xml version="1.0" encoding="GBK"?>
+ <config>
+-    <default path="/home" head="/public/common/global" foot="/public/common/global">
++    <default path="/home" head="public/common/uninav" foot="public/common/uninav">
+         <vars>
+             <title>支付宝</title>
+-            <menu>s1_message</menu>
++            <menu>s1_myaccount_message</menu>
+             <newArale>True</newArale>
+             <newAlice>True</newAlice>
++            <globalNavType>global</globalNavType>
+         </vars>
+     </default>
+ 
