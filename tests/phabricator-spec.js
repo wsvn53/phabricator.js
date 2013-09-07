@@ -16,8 +16,7 @@ describe("Phabricator", function () {
     });
 
     it("this.execute() shuold return object", function (done) {
-        prc.execute("conduit.getcertificate", {
-            token : "sf42rh2a5xqfu5fcrud75fdt4jiiefayy2lscf44"
+        prc.execute("conduit.ping", {
         }, function (data) {
             console.log(data)
             expect("result" in data).to.be(true);
@@ -25,11 +24,21 @@ describe("Phabricator", function () {
         });
     });
 
-    it("this.installCertificate(token) should return true.", function (done) {
+    it("this.installCertificate(token) should return true", function (done) {
         var token = "mcrdz4cvqhaedhanoeqqdcpcpyxygwwt32zv6q5b";
         prc.installCertificate(token, function (data) {
+            console.log("\n")
             console.log(data)
-            expect(!!data.result).to.be(true);
+            expect(!!data.result||!!data.error_code).to.be(true);
+            done();
+        });
+    });
+
+    it("this.list() should return a list", function (done) {
+        prc.list(function (data) {
+            console.log("\n")
+            console.log(data);
+            expect(data.result).to.be.an(Object);
             done();
         });
     });

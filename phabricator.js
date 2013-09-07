@@ -5,7 +5,8 @@ var Class = require("arale").Class,
     http = require("http"),
     jsonpath = require("JSONPath"),
     fs = require("fs"),
-    url = require("url");
+    url = require("url"),
+    sha1 = require('sha1');
 
 /**
  * Main class.
@@ -17,6 +18,7 @@ var Phabricator = Class.create({
         output : "json",
         proxy : false
     },
+    version : "",
     interfaces : null,
     interface_file : __dirname + "/interfaces.json",
     // store token for this app
@@ -29,6 +31,11 @@ var Phabricator = Class.create({
         method: 'POST'
     },
     initialize : function (options) {
+        // read package info
+        if (fs.existsSync(__dirname + "/package.json")) {
+            var pg = JSON.parse(fs.readFileSync(__dirname + "/package.json").toString());
+            this.version = pg.version;
+        }
         // parse interfeces
         if (!fs.existsSync(this.interface_file)) {
             throw "No `interfeces.json` found. Please use `tools/gen_api_interfaces.php` to generate it.";
@@ -110,6 +117,8 @@ var Phabricator = Class.create({
                 }
             }
         }
+        // add __conduit__ meta
+        if ("__conduit__" in data) post_params["__conduit__"] = data["__conduit__"];
         // console.log(post_params)
         post_data.push("params=" + encodeURIComponent(JSON.stringify(post_params)));
         // console.log(post_data)
@@ -139,12 +148,21 @@ var Phabricator = Class.create({
      */
     _generateData : function (data) {
         if (!data) data = {};
-        var local_config = this._readConfigFile();
+        var local_config = this._readConfigFile(),
+            out_data = {
+                host : data.host || this.config.conduit_uri + "/api/"
+            };
 
-        return {
-            host : data.host || this.config.conduit_uri + "/api/",
-            token : data.token || local_config.token
-        };
+        // Priority 1, use user defined data
+        for(var key in data) {
+            if (!(key in out_data)) out_data[key] = data[key];
+        }
+
+        for (var key in local_config) {
+            if (!(key in out_data)) out_data[key] = local_config[key];
+        } 
+
+        return out_data;
     },
     execute : function (apiName, data, callback) {
         // execute by api rule in interfaces
@@ -153,8 +171,11 @@ var Phabricator = Class.create({
             rule.name = apiName;
             this.request(rule, this._generateData(data), callback);
         } else {
-            // callback(null, null);
-            throw "Cann't find any command  named `" + apiName + "` to execute!";
+            callback({
+                result : null,
+                error_code : "ERR-JS-NOCOMMAND",
+                error_info : "Cann't find any command named `" + apiName + "` to execute!"
+            });
         }
     },
     /**
@@ -183,12 +204,53 @@ var Phabricator = Class.create({
         });
     },
     /**
+     * execute conduit.connect
+     */
+    connect : function (callback) {
+        var token = parseInt(new Date().getTime() / 1000);
+        if (fs.existsSync(this.certificate_file)) {
+            var cert_info = JSON.parse(fs.readFileSync(this.certificate_file).toString());
+            this.execute("conduit.connect", {
+                client : "Phabricator.js",
+                clientVersion : this.version,
+                clientDescription : "Phabricator api client for Node.",
+                user : cert_info.username || "",
+                authSignature: sha1(token + cert_info.certificate),
+                authToken: token
+            }, function (result) {
+                callback(result);
+            });
+        } else {
+            callback({
+                result : null,
+                error_code : "ERR-JS-NOCERTIFICATE",
+                error_info : "No certificate.json found. Execute `installCertificate` first."
+            });
+        }
+    },
+    /**
      * @return list - review list. 
      */
     list : function (callback) {
-        this.execute("list", function (result) {
-            var list = [];
-            callback(list, result);
+        var that = this;
+        this.connect(function (data) {
+            if (!!data.result) {
+                /**
+                 * execute differential.query
+                 */
+                that.execute ("differential.query", {
+                    authors : [data.result.userPHID],
+                    status : "status-open",
+                    "__conduit__" : {
+                        sessionKey : data.result.sessionKey,
+                        connectionID : data.result.connectionID
+                    }    
+                }, function (data) {
+                    callback (data);
+                });
+            } else {
+                callback (data);
+            }
         });
     }
 });
